@@ -22,7 +22,31 @@ cd umi_celegans_analysis
 
 ### Step 3: Download FASTQ Files
 
-The sequencing data (FASTQ files) for this analysis are available from the European Nucleotide Archive (ENA) under project accession **PRJEB101605**. The repository includes a download script that will retrieve all necessary FASTQ files:
+The sequencing data (FASTQ files) for this analysis are available from the European Nucleotide Archive (ENA) under project accession **PRJEB101605**. 
+
+#### Option A: Use Sample Subset Files (Faster - Recommended for Testing)
+
+For quick testing and validation of the pipeline, the repository includes pre-subsampled FASTQ files in the `Sample_Fastq/` directory. These subset files contain 100,000 reads per sample (~3-4MB per file) and allow you to run the entire pipeline in significantly less time without downloading large files from ENA.
+
+**Benefits:**
+- ✅ Already included in the repository (no download needed)
+- ✅ Much faster pipeline execution (minutes instead of hours)
+- ✅ Smaller disk space requirements (~50MB vs several GB)
+- ✅ Ideal for testing, validation, and familiarization with the pipeline
+
+**Files included in Sample_Fastq/:**
+- N2.30min.HS.1_R1.subset.fastq.gz and N2.30min.HS.1_R2.subset.fastq.gz
+- N2.30min.HS.2_R1.subset.fastq.gz and N2.30min.HS.2_R2.subset.fastq.gz
+- N2.30min.HS.3_R1.subset.fastq.gz and N2.30min.HS.3_R2.subset.fastq.gz
+- PRDE1.30min.HS.1_R1.subset.fastq.gz and PRDE1.30min.HS.1_R2.subset.fastq.gz
+- PRDE1.30min.HS.2_R1.subset.fastq.gz and PRDE1.30min.HS.2_R2.subset.fastq.gz
+- PRDE1.30min.HS.3_R1.subset.fastq.gz and PRDE1.30min.HS.3_R2.subset.fastq.gz
+
+
+
+#### Option B: Download Full ENA Files (Required for Complete Analysis)
+
+For complete, production-level analysis with full sequencing depth, download the full FASTQ files from ENA. The repository includes a download script that will retrieve all necessary FASTQ files:
 
 ```bash
 # Make the download script executable
