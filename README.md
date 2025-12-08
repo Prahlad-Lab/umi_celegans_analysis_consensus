@@ -346,9 +346,9 @@ This Quarto/R Markdown notebook performs comprehensive analysis of variants from
 # Activate the R environment
 conda activate r_variant_analysis
 
-# Open in RStudio or render with Quarto
 # Option 1: Open in RStudio and run interactively
-rstudio R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+# Open RStudio and then open the file:
+# File -> Open File -> R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
 
 # Option 2: Render to HTML using Quarto (if installed)
 quarto render R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
@@ -378,18 +378,18 @@ This comprehensive R script performs multi-level analysis of transcriptional err
 - GTF annotation file: `Caenorhabditis_elegans.WBcel235.114.gtf`
 - 22G piRNA target data (CSV file with DESeq2 results)
 
-**Configuration:** Before running, update the following paths in the script:
+**Configuration:** Before running, update the following paths in the script (in the "CONFIGURATION & SETUP" section):
 ```r
-# Line 31: Set working directory
+# Set working directory
 setwd("your/working/directory")
 
-# Line 39: Path to allele proportion files
+# Path to allele proportion files
 consensus_path <- "path/to/Allele_Proportions"
 
-# Line 40: GTF annotation file
+# GTF annotation file
 gtf_file <- "Caenorhabditis_elegans.WBcel235.114.gtf"
 
-# Line 41: 22G piRNA data file
+# 22G piRNA data file
 path_22G <- "path/to/22G_deseq_table.csv"
 ```
 
