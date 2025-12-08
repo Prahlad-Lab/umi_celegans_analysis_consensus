@@ -100,4 +100,6 @@ export BASE_OUTPUT_DIR DIR_UMI_MARKING DIR_UMI_METRICS
 # --- 3. Execute ---
 echo "--- Starting Robust Metrics Generation ---"
 parallel -j 6 run_metrics_calc {} ::: "${sample_list[@]}"
+echo "--- Generating MultiQC Report ---"
+multiqc -n umi.consensus.3 -o "${BASE_OUTPUT_DIR}/MultiQC" "${BASE_OUTPUT_DIR}"
 echo "--- Completed ---"
