@@ -42,7 +42,7 @@ For quick testing and validation of the pipeline, the repository includes pre-su
 - PRDE1.30min.HS.2_R1.subset.fastq.gz and PRDE1.30min.HS.2_R2.subset.fastq.gz
 - PRDE1.30min.HS.3_R1.subset.fastq.gz and PRDE1.30min.HS.3_R2.subset.fastq.gz
 
-**Note:** These subset files are automatically used by `UMI_analysis_pipeline_5.sh` and `UMI_analysis_pipeline_8.sh` by default.
+
 
 #### Option B: Download Full ENA Files (Required for Complete Analysis)
 
