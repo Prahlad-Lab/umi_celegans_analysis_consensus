@@ -292,58 +292,141 @@ To perform downstream variant analysis using R scripts, you need to set up an R 
 ```
 
 This creates a conda environment called `r_variant_analysis` with all necessary R packages including:
-- tidyverse, scales, ggpubr, cowplot for data manipulation and visualization
-- vcfR for VCF file handling
-- rstatix for statistical analysis
-- Bioconductor packages (rtracklayer, plyranges)
+- **Data manipulation and visualization**: tidyverse, scales, ggpubr, cowplot, extrafont, plotly, ggprism, patchwork, svglite
+- **VCF and genomics file handling**: vcfR
+- **Statistical analysis**: rstatix, broom
+- **Document generation**: knitr, kableExtra, officer, flextable, readxl
+- **Euler diagrams**: eulerr
+- **Bioconductor genomics packages**: 
+  - rtracklayer, plyranges - For working with genomic ranges and tracks
+  - GenomicFeatures, GenomicRanges - For genomic feature manipulation
+  - DOSE, clusterProfiler - For functional enrichment analysis
+  - org.Ce.eg.db - C. elegans genome annotation database
 
-Activate the R environment:
+**Important:** After creating the environment, you need to install one additional package from Bioconductor:
 
 ```bash
+# Activate the R environment
 conda activate r_variant_analysis
+
+# Install wbData package (WormBase data access)
+Rscript -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager')"
+Rscript -e "BiocManager::install('wbData')"
 ```
+
+The wbData package provides access to WormBase gene IDs and annotations needed for the transcriptional error analysis.
 
 ### Step 9: Run R Analysis Scripts
 
-The `R_Scripts/` directory contains scripts for downstream analysis:
+The `R_Scripts/` directory contains scripts for downstream analysis of consensus-based variant calling results:
 
-**1. Allelic Proportion Analysis** (`R_Scripts/allelic_proportion_analysis_depth.r`)
+**Prerequisites:**
+- The main UMI analysis pipeline must have completed successfully
+- The `r_variant_analysis` conda environment must be activated
+- You may need to update file paths in the R scripts to match your output directory structure
 
-This script analyzes allele proportions from variant calling results and creates visualization plots.
+**1. Variant Genome Analysis** (`R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd`)
 
+This Quarto/R Markdown notebook performs comprehensive analysis of variants from consensus reads called by GATK HaplotypeCaller. It compares variant profiles between N2 (wild-type) and PRDE1 (mutant) samples to assess transcriptional error rates.
+
+**What it does:**
+- Reads and processes annotated VCF files from both sample groups (N2 and PRDE1)
+- Extracts variant information including allele depth (AD), read depth (DP), and SnpEff annotations (IMPACT)
+- Filters variants based on depth and functional impact
+- Performs statistical comparisons (Wilcoxon and t-tests) between N2 and PRDE1 samples
+- Generates visualizations and tables for variant analysis
+
+**Input files:** 
+- Annotated VCF files from `Annotation/` directory:
+  - `N2.30min.HS.1.consensus.ann.vcf`, `N2.30min.HS.2.consensus.ann.vcf`, `N2.30min.HS.3.consensus.ann.vcf`
+  - `PRDE1.30min.HS.1.consensus.ann.vcf`, `PRDE1.30min.HS.2.consensus.ann.vcf`, `PRDE1.30min.HS.3.consensus.ann.vcf`
+
+**How to run:**
+```bash
+# Activate the R environment
+conda activate r_variant_analysis
+
+# Open in RStudio or render with Quarto
+# Option 1: Open in RStudio and run interactively
+rstudio R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+
+# Option 2: Render to HTML using Quarto (if installed)
+quarto render R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+```
+
+**Output:** 
+- HTML notebook with interactive visualizations
+- Statistical test results comparing variant patterns between sample groups
+- Tables showing variant impacts and functional classifications
+
+---
+
+**2. Transcriptional Error Analysis** (`R_Scripts/transcriptional_error_analysis_4.R`)
+
+This comprehensive R script performs multi-level analysis of transcriptional errors using consensus read data. It integrates variant data with genomic features and 22G piRNA targets.
+
+**What it does:**
+- **Global transcriptional error analysis**: Calculates error rates across all samples
+- **Gene-level analysis**: Identifies genes with elevated transcriptional errors
+- **Frequency distribution analysis**: Generates allele frequency tables with fine-grained binning
+- **22G piRNA overlap analysis**: Examines transcriptional errors in genes targeted by 22G piRNAs
+- **Functional enrichment**: Performs GO term and pathway enrichment for affected genes
+- **Visualization**: Creates comprehensive plots including Euler diagrams, violin plots, and frequency distributions
+
+**Input files:**
+- Per-position allele proportion files from `Allele_Proportions/` directory (`.consensus.per_position_results.tsv`)
+- GTF annotation file: `Caenorhabditis_elegans.WBcel235.114.gtf`
+- 22G piRNA target data (CSV file with DESeq2 results)
+
+**Configuration:** Before running, update the following paths in the script:
+```r
+# Line 31: Set working directory
+setwd("your/working/directory")
+
+# Line 39: Path to allele proportion files
+consensus_path <- "path/to/Allele_Proportions"
+
+# Line 40: GTF annotation file
+gtf_file <- "Caenorhabditis_elegans.WBcel235.114.gtf"
+
+# Line 41: 22G piRNA data file
+path_22G <- "path/to/22G_deseq_table.csv"
+```
+
+**How to run:**
 ```bash
 # Activate the R environment
 conda activate r_variant_analysis
 
 # Run the R script
-Rscript R_Scripts/allelic_proportion_analysis_depth.r
-```
+Rscript R_Scripts/transcriptional_error_analysis_4.R
 
-Or run interactively in R/RStudio:
-```r
-source("R_Scripts/allelic_proportion_analysis_depth.r")
-```
-
-**Input:** Uses data from `Family_size1_allele_proportions_depth/` directory
-**Output:** Histogram/density plots and violin plots showing allele proportion distributions
-
-**2. Variant Genome Analysis** (`R_Scripts/Haplotypecaller.Variants.Genome.Analysis_singletons.R`)
-
-This script performs comprehensive analysis of variants called by GATK HaplotypeCaller.
-
-```bash
-# Activate the R environment
-conda activate r_variant_analysis
-
-# Run the R script in R/RStudio
+# Or run interactively in R/RStudio
 R
-> source("R_Scripts/Haplotypecaller.Variants.Genome.Analysis_singletons.R")
+> source("R_Scripts/transcriptional_error_analysis_4.R")
 ```
 
-**Input:** Uses annotated VCF files from `Family_size1_annotation/` directory
-**Output:** Variant analysis results, statistical comparisons, and visualizations
+**Output:** 
+- `Analysis_Results_Combined/` directory containing:
+  - Transcriptional error rate tables (global and gene-level)
+  - Frequency distribution tables for allele proportions
+  - Statistical test results (Wilcoxon tests)
+  - Euler diagrams showing overlaps between gene sets
+  - GO enrichment analysis results
+  - Publication-ready visualizations (plots and tables)
 
-**Note:** You may need to update file paths in the R scripts to match your output directory structure.
+**Key features:**
+- Uses WormBase gene IDs (via wbData package) for accurate C. elegans gene annotation
+- Filters data by minimum depth (10 reads) and excludes fixed variants
+- Performs both global and gene-specific transcriptional error analysis
+- Integrates multiple data types (variants, genomic features, piRNA targets)
+
+---
+
+**Notes:**
+- Both scripts require significant computational resources and may take several hours to complete depending on data size
+- Ensure all input files exist and paths are correctly specified before running
+- The scripts generate output directories automatically if they don't exist
 
 ## Prerequisites
 
