@@ -58,6 +58,7 @@ show_help() {
     echo "  - snpeff = 5.2"
     echo "  - samtools = 1.22.1"
     echo "  - STAR = 2.7.11b"
+    echo "  - multiqc = 1.32"
     echo ""
     echo "All tools will be installed from the bioconda channel."
     echo "========================================================================="
@@ -112,6 +113,7 @@ create_separate_environments() {
         ["snpeff"]="5.2"
         ["samtools.v1.22"]="1.22.1"
         ["STAR"]="2.7.11b"
+        ["multiqc"]="1.32"
     )
     
     # Note: samtools.v1.22 is the environment name used in the pipeline scripts
