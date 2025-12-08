@@ -58,31 +58,46 @@ This creates individual environments for each tool (fastqc, bcftools, umi_tools,
 
 ### Step 5: Run the Analysis Pipeline
 
-The main analysis pipeline is `UMI_analysis_pipeline_5.sh`. This script performs the complete UMI-based variant calling analysis.
+The main analysis pipeline is `UMI_analysis_pipeline_11.sh`. This script performs the complete UMI-based variant calling analysis using consensus reads.
 
 **What the pipeline does:**
 - Quality control (FastQC)
 - Converts FastQ to unmapped BAM
 - Extracts UMIs from reads
 - Aligns reads using STAR
-- Groups reads by UMI
-- Filters BAMs by family size
-- Performs variant calling with GATK HaplotypeCaller
+- Groups reads by UMI families
+- **Generates consensus reads** from UMI families (using fgbio's CallMolecularConsensusReads)
+- Re-aligns consensus reads to the reference genome
+- Performs variant calling with GATK HaplotypeCaller on consensus BAMs
 - Annotates variants with SnpEff
-- Calculates allele proportions
+- Calculates allele proportions using bcftools mpileup
+- Generates MultiQC summary report
+
+**Key Features:**
+The pipeline uses a consensus-based approach that:
+- Groups reads by UMI sequences to identify molecular families
+- Calls consensus sequences from each UMI family to reduce sequencing errors
+- Produces high-quality consensus BAM files for more accurate variant calling
+- Includes comprehensive quality metrics and MultiQC reporting
 
 **Output folders created:**
-The pipeline creates an `output_subset` directory with the following subdirectories:
-- `fastqc/` - Quality control reports
-- `FastqToUbam/` - Unmapped BAM files
+The pipeline creates a base output directory with the following subdirectories. The default location is `/vscratch/grp-vprahlad/umi_celegans_consensus` for HPC environments, but this can be configured via the `BASE_OUTPUT_DIR` variable in the script.
+- `fastqc/` - Quality control reports for raw sequencing data
+- `FastqToUbam/` - Unmapped BAM files converted from FastQ
 - `ExtractUmisFromBam/` - UMI-extracted BAM files
-- `STARNoClip/` - STAR alignment outputs
+- `STARNoClip/` - Initial STAR alignment outputs (before consensus)
 - `UMIAwareDuplicateMarkingGenomeNoClip/` - UMI-grouped BAM files
-- `FilterBambyFamilySizeGenome/` - Family-size filtered BAM files
-- `Family_size1_haplotype_caller/` - GATK variant calling outputs
-- `Family_size1_annotation/` - SnpEff annotated variants
-- `Family_size1_bcftools_mpileup/` - bcftools pileup results
-- `Family_size1_allele_proportions_depth/` - Allele proportion calculations
+- `Consensus_Analysis/` - **Consensus read generation outputs including:**
+  - Grouped BAMs by UMI families (`.fgbio_grouped.bam`)
+  - Consensus unmapped BAMs (`.consensus.unmapped.bam`)
+  - Re-aligned consensus BAMs (`.consensus.merged.bam`)
+  - Alignment metrics for consensus reads
+- `FilterBambyFamilySizeGenome/` - Family size statistics (kept for reference)
+- `HaplotypeCaller/` - GATK variant calling outputs from consensus BAMs
+- `Annotation/` - SnpEff annotated variants (VCF and BED formats)
+- `Bcftools_Mpileup/` - bcftools pileup results
+- `Allele_Proportions/` - Allele proportion calculations
+- `MultiQC/` - Aggregated quality control reports
 
 **To run the pipeline:**
 
@@ -91,12 +106,20 @@ The pipeline creates an `output_subset` directory with the following subdirector
 conda activate umi_celegans_analysis
 
 # Run the pipeline
-./UMI_analysis_pipeline_5.sh
+./UMI_analysis_pipeline_11.sh
 ```
 
-**Note:** This pipeline is designed to run on an HPC cluster with SLURM. If running locally, you may need to remove or modify the SLURM directives at the top of the script.
+**Note:** This pipeline is designed to run on an HPC cluster with SLURM. If running locally, you may need to:
+- Remove or modify the SLURM directives at the top of the script (the `#SBATCH` lines)
+- Adjust the input/output directory paths (such as `BASE_OUTPUT_DIR`, `DIR_SEQS`, and `DIR_REF_INPUT`) to match your local file system
+- Ensure you have at least 100GB of memory and 32 CPU cores available for optimal performance
 
-**Testing Information:** The main pipeline was tested with UB CCR (University at Buffalo Center for Computational Research), using 32 cores and 100GB of memory, with a runtime of 9:44 minutes.
+**Advanced Options:**
+- The pipeline includes smart checkpoint/resume functionality - it will skip steps that have already completed successfully
+- Set `CLEANUP_INTERMEDIATES="true"` (defined near the top of the script) to automatically remove intermediate files and save disk space
+- Adjust parallelization parameters (e.g., `parallel -j 6`) based on your available resources
+
+**Testing Information:** The pipeline was tested with UB CCR (University at Buffalo Center for Computational Research), using 32 cores and 100GB of memory with a 48-hour time limit.
 
 ### Step 6: Set Up R Environment for Variant Analysis
 
