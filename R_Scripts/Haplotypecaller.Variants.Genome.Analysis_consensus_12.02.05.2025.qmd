@@ -18,29 +18,38 @@ mRNA were tagged with UMIs using the SMART-Seq® Total RNA Pico Input with UMIs 
 
 1.  Fastqc was used to check the quality of the reads.
 
-2.  FGBIO Fastq to ubam was used to convert the fastq files to unmapped bam files and extract the umi-reads.
+2.  FGBIO Fastq to ubam was used to convert the fastq files to unmapped bam files and
 
-3.  Align the reads with STAR. Two pass. Using Bulk RNA-seq Encode settings. BAM file aligned to the genome.
+3.  fgbio ExtractUmisFromBa was used to extract the UMIs
 
-4.  Intermediary steps Sort bam files first by coordinate then by query names.
+4.  Sort UMI-extracted BAM by QueryName
 
-5.  Groups UMI with Umit-tools group
+5.  Align the reads with STAR.Using Bulk RNA-seq Encode settings. BAM file aligned to the genome.
 
-6.  Markduplicates (Umi Aware) with GATK MarkDuplicates
+6.  Intermediary steps Sort bam files first by coordinate then by query names.
 
-7.  Quantify BAM files and perform quality control RNAseqc
+7.  MergeBamAlignment (Merge aligned BAM with unmapped BAM)
 
-8.  Call Variants with HaplotypeCaller
+8.  Sort Merged BAM by Coordinate
 
-9.  Annotate Variants with Snepeff
+9.  Groups UMI with Umit-tools group
 
-10. Import variants to R to get differential variant analysis
+10. awkCountFamilysize (Generate family size report)
+
+11. FilterBambyFamilySize (Create BAMs for singletons)
+
+12. Call Variants with HaplotypeCaller
+
+13. Annotate Variants with Snepeff
+
+14. Import variants to R to get differential variant analysis
 
 ```{r,warning=F,message=FALSE}
 rm(list = ls())
 ```
 
 ```{r,warning=F,message=FALSE}
+
 
 library(extrafont)
 library(cowplot)
@@ -63,26 +72,10 @@ old <- theme_set(theme_cowplot(font_size = 12,font_family = "Arial"))
 # It extracts variant information, including Allele Depth (AD), Read Depth (DP),
 # and SNPeff annotations (IMPACT).
 # It then filters variants based on DP and IMPACT, and performs several statistical
-# comparisons between the two samples.
+# comparisons between the two samples using both Wilcoxon and t-tests.
 #
-# Version 43: Changed SnpEff rate calculations to normalize by total read depth.
 
 # --- 1. SETUP: Install and Load Required Packages ---
-
-# Install packages if you haven't already
-# install.packages("vcfR")
-# install.packages("tidyverse")
-# install.packages("broom")
-# install.packages("rstatix")
-# install.packages("cowplot")
-# install.packages("plotly")
-# install.packages("rtracklayer")
-# install.packages("plyranges")
-# install.packages("knitr")
-# install.packages("kableExtra")
-# install.packages("officer")
-# install.packages("flextable")
-
 # Load the libraries
 library(vcfR)
 library(tidyverse)
@@ -99,8 +92,8 @@ library(flextable)
 # --- 2. DATA LOADING: Define File Paths ---
 
 # IMPORTANT: Replace these with the actual paths to your VCF files.
-n2_files <- c("../Data/Broad/Family_size1_annotation/N2.30min.HS.1.singletons.ann.vcf", "../Data/Broad/Family_size1_annotation/N2.30min.HS.2.singletons.ann.vcf", "../Data/Broad/Family_size1_annotation/N2.30min.HS.3.singletons.ann.vcf")
-prde1_files <-  c("../Data/Broad/Family_size1_annotation/PRDE1.30min.HS.1.singletons.ann.vcf", "../Data/Broad/Family_size1_annotation/PRDE1.30min.HS.2.singletons.ann.vcf", "../Data/Broad/Family_size1_annotation/PRDE1.30min.HS.3.singletons.ann.vcf")
+n2_files <- c("Annotation/N2.30min.HS.1.consensus.ann.vcf", "Annotation/N2.30min.HS.2.consensus.ann.vcf", "Annotation/N2.30min.HS.3.consensus.ann.vcf")
+prde1_files <-  c("Annotation/PRDE1.30min.HS.1.consensus.ann.vcf", "Annotation/PRDE1.30min.HS.2.consensus.ann.vcf", "Annotation/PRDE1.30min.HS.3.consensus.ann.vcf")
 
 # Check if files exist to prevent errors
 all_files <- c(n2_files, prde1_files)
@@ -112,11 +105,10 @@ if (!all(file.exists(all_files))) {
 # --- 3. PROCESSING FUNCTION: Extract Data from a VCF File ---
 
 #' Process a single VCF file to extract relevant variant data.
-process_vcf <- function(file_path, sample_name, replicate_num) {
+process_vcf <- function(file_path, sample_name, replicate_num){
   vcf <- read.vcfR(file_path, verbose = FALSE)
   tidy_vcf <- vcfR2tidy(vcf,
-                       # Add LOF and NMD to the info fields to be extracted
-                       info_fields = c("ANN", "LOF", "NMD"),
+                       info_fields = c("ANN", "LOF", "NMD","AC"),
                        format_fields = c("AD", "DP"),
                        single_frame = TRUE)
 
@@ -137,9 +129,10 @@ process_vcf <- function(file_path, sample_name, replicate_num) {
       Sample = sample_name,
       Replicate = replicate_num
     ) %>%
-    separate_rows(ANN_allele, sep = "&") %>%
+    # --- STEP CAUSING DUPLICATES ---
+    separate_rows(ANN_allele, sep = "&") %>% 
+    # -------------------------------
     mutate(
-      # Safely extract SnpEff fields, returning NA if a field is missing
       Effect_Type = map_chr(str_split(ANN_allele, "\\|"), ~ if(length(.x) >= 2) .x[[2]] else NA_character_),
       IMPACT = map_chr(str_split(ANN_allele, "\\|"), ~ if(length(.x) >= 3) .x[[3]] else NA_character_),
       GENE = map_chr(str_split(ANN_allele, "\\|"), ~ if(length(.x) >= 4) .x[[4]] else NA_character_),
@@ -149,29 +142,43 @@ process_vcf <- function(file_path, sample_name, replicate_num) {
         str_detect(Effect_Type, "stop_gained") ~ "NONSENSE",
         TRUE ~ "OTHER"
       ),
-      # The LOF and NMD columns are now booleans based on the presence of the INFO tag
-      LoF = ifelse(!is.na(LOF),TRUE,FALSE) # This assumes LOF is a boolean flag (TRUE/FALSE) from vcfR2tidy
-      ,NMD = if_else(!is.na(NMD),TRUE,FALSE)  # This assumes NMD is a boolean flag (TRUE/FALSE) from vcfR2tidy
+      LoF = !is.na(LOF),
+      NMD = !is.na(NMD)
     ) %>%
     mutate(
       AD_Ref = ifelse(is.na(AD_Ref), 0, AD_Ref),
       AD_Alt = ifelse(is.na(AD_Alt), 0, AD_Alt),
       gt_DP = as.numeric(gt_DP)
     ) %>%
-    select(Sample, Replicate, CHROM, POS, REF, ALT, GENE, IMPACT, Effect_Type, Functional_Class, LoF, NMD, AD_Ref, AD_Alt, gt_DP) %>%
+    select(ANN, Sample, Replicate, CHROM, POS, REF, ALT, GENE, IMPACT, Effect_Type, Functional_Class, LoF, NMD, AD_Ref, AD_Alt, gt_DP, gt_AD, AC) %>%
     rename(Read_Depth = gt_DP) %>%
     mutate(Variant_Type = case_when(
         nchar(REF) == 1 & nchar(ALT) == 1 ~ "SNP",
         nchar(REF) > nchar(ALT) ~ "Deletion",
         nchar(REF) < nchar(ALT) ~ "Insertion",
         TRUE ~ "Other"
-    ))
+    )) %>%
+    # --- FIX: DEDUPLICATION LOGIC ---
+    # Assign numeric rank to IMPACT to pick the "worst" one
+    mutate(Impact_Rank = case_when(
+      IMPACT == "HIGH" ~ 4,
+      IMPACT == "MODERATE" ~ 3,
+      IMPACT == "LOW" ~ 2,
+      IMPACT == "MODIFIER" ~ 1,
+      TRUE ~ 0
+    )) %>%
+    # Group by the unique genomic variant ID
+    group_by(CHROM, POS, REF, ALT, Sample, Replicate) %>%
+    # Sort by Impact (highest first) and take the top one
+    arrange(desc(Impact_Rank)) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(-Impact_Rank) # Clean up helper column
+    # --------------------------------
+
   return(processed_data)
 }
-
-
 # --- 4. COMBINE DATA: Process All VCF Files ---
-
 file_metadata <- tibble(
   path = c(n2_files, prde1_files),
   sample = rep(c("N2", "PRDE1"), each = 3),
@@ -194,9 +201,17 @@ variants_filtered <- all_variants_raw %>%
   filter(Read_Depth >= MIN_READ_DEPTH) %>%
   filter(IMPACT %in% DESIRED_IMPACTS)  |> 
   filter(Variant_ratio < 1.0) 
-  
+#   3791  3792  4894  4895  9893 14491 14492 15072 17461 19531 23452 23453 25569 25570 26567 26632 26633 28690 28691
+# [20] 32289 35025 36099 36100 37167 37168 39450 46855 46856 52121 57626 57627 60928
+
 cat("Filtered down to", nrow(variants_filtered), "total variant records matching criteria.\n")
 
+
+list.variants.Filtered = variants_filtered |> as.data.frame() |>  group_by(Sample) |>  group_split()
+list.variants.Filtered.names = variants_filtered |> group_by(Sample) |>  group_keys()
+final.list.varians.filtered = list("N2" = list.variants.Filtered[[1]],"PRDE1"=list.variants.Filtered[[2]])
+
+writexl::write_xlsx(final.list.varians.filtered,path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
 
 # --- 6A. STATISTICAL ANALYSIS: Global Allele Proportions per Replicate ---
 cat("\n--- Running Global Allele Proportion Analysis per Replicate ---\n")
@@ -219,6 +234,11 @@ stat_test_alt_proportion <- replicate_proportions %>%
   rstatix::wilcox_test(Proportion_Alt ~ Sample, detailed = TRUE)
 print(stat_test_alt_proportion)
 
+# ADDED: T-test analysis
+stat_t_test_alt_proportion <- replicate_proportions %>%
+  rstatix::t_test(Proportion_Alt ~ Sample, detailed = TRUE)
+print(stat_t_test_alt_proportion)
+
 
 # --- 6B. STATISTICAL ANALYSIS: Allele Read Proportions by Variant Type per Replicate ---
 cat("\n--- Running Allele Read Proportion by Variant Type per Replicate ---\n")
@@ -237,6 +257,12 @@ stat_test_alt_type_proportions <- alt_allele_proportions_by_replicate %>%
   rstatix::wilcox_test(Proportion ~ Sample, detailed = TRUE)
 print(stat_test_alt_type_proportions)
 
+# ADDED: T-test analysis
+stat_t_test_alt_type_proportions <- alt_allele_proportions_by_replicate %>%
+  group_by(Variant_Type) %>%
+  rstatix::t_test(Proportion ~ Sample, detailed = TRUE)
+print(stat_t_test_alt_type_proportions)
+
 
 # --- 6D. STATISTICAL ANALYSIS: Global Error Rate ---
 cat("\n--- Running Wilcoxon Test on Global Error Rate ---\n")
@@ -251,6 +277,11 @@ error_rate_data <- variants_filtered %>%
 stat_test_error_rate <- error_rate_data %>%
   rstatix::wilcox_test(Error_Rate ~ Sample, detailed = TRUE)
 print(stat_test_error_rate)
+
+# ADDED: T-test analysis
+stat_t_test_error_rate <- error_rate_data %>%
+  rstatix::t_test(Error_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_error_rate)
 
 
 # --- Common Denominator for Rate Calculations ---
@@ -279,6 +310,13 @@ stat_test_mismatch_error_rate <- mismatch_error_data %>%
   rstatix::wilcox_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
 print(stat_test_mismatch_error_rate)
 
+# ADDED: T-test analysis
+stat_t_test_mismatch_error_rate <- mismatch_error_data %>%
+  group_by(Mismatch_Type) %>%
+  filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
+  rstatix::t_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_mismatch_error_rate)
+
 
 # --- 6F. STATISTICAL ANALYSIS: SnpEff Functional Class Rate ---
 cat("\n--- Running Wilcoxon Test on SnpEff Functional Class Rate ---\n")
@@ -296,6 +334,12 @@ stat_test_functional_class_rate <- functional_class_rate_data %>%
   rstatix::wilcox_test(Class_Rate ~ Sample, detailed = TRUE)
 print(stat_test_functional_class_rate)
 
+# ADDED: T-test analysis
+stat_t_test_functional_class_rate <- functional_class_rate_data %>%
+  group_by(Functional_Class) %>%
+  filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
+  rstatix::t_test(Class_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_functional_class_rate)
 
 # --- 6G. STATISTICAL ANALYSIS: SnpEff Effect Type Rate ---
 cat("\n--- Running Wilcoxon Test on SnpEff Effect Type Rate ---\n")
@@ -312,6 +356,13 @@ stat_test_effect_type_rate <- effect_type_rate_data %>%
   filter(sum(Effect_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Effect_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
   rstatix::wilcox_test(Effect_Rate ~ Sample, detailed = TRUE)
 print(stat_test_effect_type_rate)
+
+# ADDED: T-test analysis
+#stat_t_test_effect_type_rate <- effect_type_rate_data %>%
+  # group_by(Effect_Type) %>%
+  # filter(sum(Effect_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Effect_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
+  # rstatix::t_test(Effect_Rate ~ Sample, detailed = TRUE)
+#print(stat_t_test_effect_type_rate)
 
 
 # --- 6H. STATISTICAL ANALYSIS: SnpEff NMD Rate ---
@@ -333,6 +384,11 @@ stat_test_nmd_rate <- nmd_rate_data %>%
   rstatix::wilcox_test(NMD_Rate ~ Sample, detailed = TRUE)
 print(stat_test_nmd_rate)
 
+# ADDED: T-test analysis
+stat_t_test_nmd_rate <- nmd_rate_data %>%
+  rstatix::t_test(NMD_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_nmd_rate)
+
 
 # --- 6I. STATISTICAL ANALYSIS: SnpEff LoF Rate ---
 cat("\n--- Running Wilcoxon Test on SnpEff LoF Rate ---\n")
@@ -353,11 +409,60 @@ stat_test_lof_rate <- lof_rate_data %>%
   rstatix::wilcox_test(LoF_Rate ~ Sample, detailed = TRUE)
 print(stat_test_lof_rate)
 
+# ADDED: T-test analysis
+stat_t_test_lof_rate <- lof_rate_data %>%
+  rstatix::t_test(LoF_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_lof_rate)
+
+# --- 6J. STATISTICAL ANALYSIS: Combined Deleterious Variants (Nonsense, Missense, Frameshift) ---
+cat("\n--- Running Wilcoxon Test on Combined Deleterious Variants Rate ---\n")
+deleterious_effects <- c("missense_variant", "stop_gained", "frameshift_variant")
+
+# Sum alternate allele depths for combined deleterious variants per replicate
+deleterious_alt_counts_per_replicate <- variants_filtered %>%
+  filter(str_detect(Effect_Type, paste(deleterious_effects, collapse = "|"))) %>%
+  group_by(Sample, Replicate) %>%
+  summarise(Total_Alt_Deleterious = sum(AD_Alt), .groups = 'drop')
+
+# Calculate rate by joining with total depth
+deleterious_rate_data <- total_depth_per_replicate %>%
+  full_join(deleterious_alt_counts_per_replicate, by = c("Sample", "Replicate")) %>%
+  mutate(Total_Alt_Deleterious = coalesce(Total_Alt_Deleterious, 0L)) %>%
+  mutate(Deleterious_Rate = Total_Alt_Deleterious / Total_Replicate_Depth)
+
+##
+deleterious_effects <- c("missense_variant", "stop_gained", "frameshift_variant")
+
+# Sum alternate allele depths for combined deleterious variants per replicate
+#sanity Check
+non.deleterious_alt_counts_per_replicate <- variants_filtered %>%
+  filter(!str_detect(Effect_Type, paste(deleterious_effects, collapse = "|"))) %>%
+  group_by(Sample, Replicate) %>%
+  summarise(Total_Alt_Deleterious = sum(AD_Alt), .groups = 'drop')
+
+# Calculate rate by joining with total depth
+non.deleterious_rate_data <- total_depth_per_replicate %>%
+  full_join(non.deleterious_alt_counts_per_replicate, by = c("Sample", "Replicate")) %>%
+  mutate(Total_Alt_Deleterious = coalesce(Total_Alt_Deleterious, 0L)) %>%
+  mutate(Deleterious_Rate = Total_Alt_Deleterious / Total_Replicate_Depth)
+
+
+# Perform Wilcoxon test on combined deleterious rates
+stat_test_deleterious_rate <- deleterious_rate_data %>%
+  rstatix::wilcox_test(Deleterious_Rate ~ Sample, detailed = TRUE)
+print(stat_test_deleterious_rate)
+
+# ADDED: T-test analysis
+stat_t_test_deleterious_rate <- deleterious_rate_data %>%
+  rstatix::t_test(Deleterious_Rate ~ Sample, detailed = TRUE)
+print(stat_t_test_deleterious_rate)
+
+
 # --- 8. ANALYSIS BY GENE LENGTH QUANTILE (Setup) ---
 cat("\n--- Setting up Analysis by Gene Length Quantile ---\n")
 
 # 8A. Load GTF and Define Gene Quantiles
-gtf <- rtracklayer::import(con = "../../Github.Sehee.paper/Data/input/Caenorhabditis_elegans.WBcel235.111.gtf.gz")
+gtf <- rtracklayer::import(con = "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Data/input/Caenorhabditis_elegans.WBcel235.111.gtf.gz")
 
 protein_coding_genes <- gtf |> plyranges::filter(gene_biotype == "protein_coding") |> plyranges::filter(type == "gene")
 
@@ -648,6 +753,21 @@ lof_rate_plot <- ggplot(lof_rate_summary, aes(x = Sample, y = mean_rate, fill = 
   theme_cowplot(font_size = 12, font_family = "Arial") +
   theme(legend.position = "none")
 
+# 7J. Combined Deleterious Variants Plot
+# The user requested to change this to a boxplot with percentages and no significance test.
+deleterious_rate_plot <- ggplot(deleterious_rate_data, aes(x = Sample, y = Deleterious_Rate, fill = Sample)) +
+  geom_boxplot(width = 0.5, outlier.shape = NA) +
+  geom_jitter(width = 0.1, height = 0) +
+  geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+  labs(
+    x = "Sample",
+    y = "Percentage \nNon-Reference Reads/Total Reads"
+  ) +
+  theme_cowplot(font_size = 12, font_family = "Arial") +
+  theme(legend.position = "none")
+
 
 # --- 8C. Statistical Analysis by Quantile ---
 cat("\n--- Running Statistical Analysis by Gene Length Quantile ---\n")
@@ -666,6 +786,11 @@ quantile_replicate_proportions <- variants_by_quantile %>%
 quantile_stat_test_alt_proportion <- quantile_replicate_proportions %>%
   group_by(Quantile) %>%
   rstatix::wilcox_test(Proportion_Alt ~ Sample, detailed = TRUE)
+
+# ADDED: T-test analysis by quantile
+quantile_stat_t_test_alt_proportion <- quantile_replicate_proportions %>%
+  group_by(Quantile) %>%
+  rstatix::t_test(Proportion_Alt ~ Sample, detailed = TRUE)
 
 
 # Chi-squared Test for Allele Read Proportions by Quantile
@@ -687,6 +812,11 @@ quantile_error_rate_data <- variants_by_quantile %>%
 quantile_stat_test_error_rate <- quantile_error_rate_data %>%
   group_by(Quantile) %>%
   rstatix::wilcox_test(Error_Rate ~ Sample, detailed = TRUE)
+
+# ADDED: T-test analysis on global error rate by quantile
+quantile_stat_t_test_error_rate <- quantile_error_rate_data %>%
+  group_by(Quantile) %>%
+  rstatix::t_test(Error_Rate ~ Sample, detailed = TRUE)
 
 
 # 8D. Visualizations by Quantile
@@ -761,6 +891,75 @@ quantile_error_rate_plot <- ggplot(quantile_error_rate_data, aes(x = Sample, y =
 
 print(ggplotly(quantile_error_rate_plot))
 
+
+# --- 9. ANALYSIS BY INTRON PRESENCE ---
+cat("\n--- Running Analysis by Intron Presence ---\n")
+
+# 9A. Define Intron Status based on GTF
+# We reuse the 'gtf' and 'protein_coding_genes' objects loaded in Section 8A.
+
+# Count exons per gene for protein coding genes
+gene_exon_counts <- gtf %>%
+  as_tibble() %>%
+  filter(type == "exon", gene_biotype == "protein_coding") %>%
+  group_by(gene_name) %>%
+  summarise(n_exons = n(), .groups = 'drop')
+
+# Define lists of genes with and without introns
+genes_with_introns <- gene_exon_counts %>% filter(n_exons > 1) %>% pull(gene_name)
+genes_without_introns <- gene_exon_counts %>% filter(n_exons == 1) %>% pull(gene_name)
+
+# 9B. Filter Variants by Intron Status
+variants_intron_analysis <- variants_filtered %>%
+  mutate(Intron_Status = case_when(
+    GENE %in% genes_with_introns ~ "Genes with Introns",
+    GENE %in% genes_without_introns ~ "Genes without Introns",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(Intron_Status))
+
+# 9C. Calculate Error Rates per Replicate per Intron Status
+intron_error_rates <- variants_intron_analysis %>%
+  group_by(Intron_Status, Sample, Replicate) %>%
+  summarise(
+    Total_Alt = sum(AD_Alt),
+    Total_Ref = sum(AD_Ref),
+    Error_Rate = Total_Alt / (Total_Alt + Total_Ref),
+    .groups = 'drop'
+  )
+
+# 9D. Statistical Tests (Wilcoxon and T-test)
+cat("\n--- Wilcoxon Test: Intron vs No Intron ---\n")
+stat_test_intron_wilcox <- intron_error_rates %>%
+  group_by(Intron_Status) %>%
+  rstatix::wilcox_test(Error_Rate ~ Sample, detailed = TRUE)
+print(stat_test_intron_wilcox)
+
+cat("\n--- T-test: Intron vs No Intron ---\n")
+stat_test_intron_ttest <- intron_error_rates %>%
+  group_by(Intron_Status) %>%
+  rstatix::t_test(Error_Rate ~ Sample, detailed = TRUE)
+print(stat_test_intron_ttest)
+
+# 9E. Visualization (Boxplot)
+intron_plot <- ggplot(intron_error_rates, aes(x = Sample, y = Error_Rate, fill = Sample)) +
+  geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.6) +
+  geom_jitter(width = 0.1, height = 0) +
+  facet_wrap(~ Intron_Status, axes = "all_y") +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0.15, 0.15))) +
+  scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+  labs(
+    subtitle = "Error Rates: Genes with Introns vs Genes without Introns",
+    x = "Sample",
+    y = "Percentage \nNon-Reference Reads/Total Reads",
+    caption = n_value_label_string
+  ) +
+  theme_cowplot(font_size = 12, font_family = "Arial") +
+  theme(legend.position = "none", plot.caption = element_text(hjust = 1, size = 10))
+
+print(ggplotly(intron_plot))
+
+
 # --- 8E. SUMMARY TABLE: Unique Variant Counts by Replicate ---
 cat("\n--- Generating Summary Table of Variant Counts by Replicate ---\n")
 
@@ -776,8 +975,14 @@ quantile_counts_reps <- variants_by_quantile %>%
   summarise(Count = n_distinct(CHROM, POS, REF, ALT), .groups = 'drop') %>%
   rename(Analysis = Quantile)
 
+# Intron Analysis variants per replicate (ADDED)
+intron_counts_reps <- variants_intron_analysis %>%
+  group_by(Sample, Replicate, Intron_Status) %>%
+  summarise(Count = n_distinct(CHROM, POS, REF, ALT), .groups = 'drop') %>%
+  rename(Analysis = Intron_Status)
+
 # Combine and pivot
-summary_table <- bind_rows(total_counts_reps, quantile_counts_reps) %>%
+summary_table <- bind_rows(total_counts_reps, quantile_counts_reps, intron_counts_reps) %>%
   select(Analysis, Sample, Replicate, Count) %>%
   pivot_wider(names_from = Replicate, values_from = Count, names_prefix = "Replicate_") %>%
   arrange(Analysis, Sample)
@@ -808,7 +1013,7 @@ display_and_save_outputs <- function(df, caption, filename_base, dir) {
 }
 
 # --- Define Output Directories ---
-output_dir <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Data/output/UMI_data/Haplotype_Caller_variants"
+output_dir <- "Variant_Analysis/"
 tables_dir <- file.path(output_dir, "tables")
 if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
 
@@ -821,17 +1026,22 @@ display_and_save_outputs(functional_class_rate_data, "Functional Class Rate", "f
 display_and_save_outputs(effect_type_rate_data, "Effect Type Rate", "effect_type_rate", tables_dir)
 display_and_save_outputs(nmd_rate_data, "NMD Rate", "nmd_rate", tables_dir)
 display_and_save_outputs(lof_rate_data, "LoF Rate", "lof_rate", tables_dir)
+display_and_save_outputs(deleterious_rate_data, "Combined Deleterious Rate", "deleterious_rate", tables_dir)
+
 
 # Quantile analysis tables
 display_and_save_outputs(quantile_replicate_proportions, "Quantile Allele Proportions", "quantile_allele_proportions", tables_dir)
 display_and_save_outputs(quantile_alt_allele_proportions_by_replicate, "Quantile Allele Proportions by Type", "quantile_alt_allele_proportions_by_type", tables_dir)
 display_and_save_outputs(quantile_error_rate_data, "Quantile Global Error Rate", "quantile_global_error_rate", tables_dir)
 
+# Intron analysis tables (ADDED)
+display_and_save_outputs(intron_error_rates, "Intron vs No-Intron Error Rates", "intron_error_rates", tables_dir)
 
-# --- 9. SAVE ALL RESULTS ---
+
+# --- 10. SAVE ALL RESULTS ---
 
 # --- Define Output Directories ---
-output_dir <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Data/output/UMI_data/Haplotype_Caller_variants"
+output_dir <- "Variant_Analysis/"
 tables_dir <- file.path(output_dir, "tables")
 stat_test_dir <- file.path(output_dir, "stat_test")
 figures_dir <- file.path(output_dir, "figures")
@@ -864,16 +1074,23 @@ ggsave(filename = file.path(figures_dir, "functional_class_rate.svg"), plot = fu
 ggsave(filename = file.path(figures_dir, "effect_type_rate.svg"), plot = effect_type_plot, width = 8, height = 6)
 ggsave(filename = file.path(figures_dir, "nmd_rate.svg"), plot = nmd_rate_plot, width = 3.5, height = 4)
 ggsave(filename = file.path(figures_dir, "lof_rate.svg"), plot = lof_rate_plot, width = 3.5, height = 4)
+ggsave(filename = file.path(figures_dir, "deleterious_rate.svg"), plot = deleterious_rate_plot, width = 3.5, height = 4)
+
 
 # Save Quantile Plots
 ggsave(filename = file.path(figures_dir, "quantile_allele_proportions.svg"), plot = quantile_proportion_plot, width = 5, height = 5)
 ggsave(filename = file.path(figures_dir, "quantile_alt_allele_proportions.svg"), plot = quantile_allele_read_plot, width = 5, height = 7)
 ggsave(filename = file.path(figures_dir, "quantile_global_error_rate.svg"), plot = quantile_error_rate_plot, width = 4, height = 4)
 
+# Save Intron Plots (ADDED)
+ggsave(filename = file.path(figures_dir, "intron_error_rate.svg"), plot = intron_plot, width = 5, height = 4)
+
+
 cat("\nSuccessfully saved all plots to:", figures_dir, "\n")
 
 
 # --- Save Statistical Results ---
+# Save Wilcoxon Results
 write_csv(stat_test_alt_proportion, file.path(stat_test_dir, "summary_global_allele_proportions_wilcoxon.csv"))
 write_csv(stat_test_alt_type_proportions, file.path(stat_test_dir, "summary_global_alt_allele_type_proportions_wilcoxon.csv"))
 write_csv(stat_test_error_rate, file.path(stat_test_dir, "summary_global_error_rate_wilcoxon.csv"))
@@ -882,7 +1099,238 @@ write_csv(stat_test_functional_class_rate, file.path(stat_test_dir, "summary_fun
 write_csv(stat_test_effect_type_rate, file.path(stat_test_dir, "summary_effect_type_rate_wilcoxon.csv"))
 write_csv(stat_test_nmd_rate, file.path(stat_test_dir, "summary_nmd_rate_wilcoxon.csv"))
 write_csv(stat_test_lof_rate, file.path(stat_test_dir, "summary_lof_rate_wilcoxon.csv"))
+write_csv(stat_test_deleterious_rate, file.path(stat_test_dir, "summary_deleterious_rate_wilcoxon.csv"))
 write_csv(quantile_stat_test_error_rate, file.path(stat_test_dir, "summary_quantile_error_rate_wilcoxon.csv"))
+write_csv(quantile_stat_test_alt_proportion, file.path(stat_test_dir, "summary_quantile_allele_proportions_wilcoxon.csv"))
+
+# Save Intron Wilcoxon Results (ADDED)
+write_csv(stat_test_intron_wilcox, file.path(stat_test_dir, "summary_intron_error_rate_wilcoxon.csv"))
+
+
+# ADDED: Save T-test Results
+write_csv(stat_t_test_alt_proportion, file.path(stat_test_dir, "summary_global_allele_proportions_ttest.csv"))
+write_csv(stat_t_test_alt_type_proportions, file.path(stat_test_dir, "summary_global_alt_allele_type_proportions_ttest.csv"))
+write_csv(stat_t_test_error_rate, file.path(stat_test_dir, "summary_global_error_rate_ttest.csv"))
+write_csv(stat_t_test_mismatch_error_rate, file.path(stat_test_dir, "summary_mismatch_error_rate_ttest.csv"))
+write_csv(stat_t_test_functional_class_rate, file.path(stat_test_dir, "summary_functional_class_rate_ttest.csv"))
+#write_csv(stat_t_test_effect_type_rate, file.path(stat_test_dir, "summary_effect_type_rate_ttest.csv"))
+write_csv(stat_t_test_nmd_rate, file.path(stat_test_dir, "summary_nmd_rate_ttest.csv"))
+write_csv(stat_t_test_lof_rate, file.path(stat_test_dir, "summary_lof_rate_ttest.csv"))
+write_csv(stat_t_test_deleterious_rate, file.path(stat_test_dir, "summary_deleterious_rate_ttest.csv"))
+write_csv(quantile_stat_t_test_error_rate, file.path(stat_test_dir, "summary_quantile_error_rate_ttest.csv"))
+write_csv(quantile_stat_t_test_alt_proportion, file.path(stat_test_dir, "summary_quantile_allele_proportions_ttest.csv"))
+
+# Save Intron T-test Results (ADDED)
+write_csv(stat_test_intron_ttest, file.path(stat_test_dir, "summary_intron_error_rate_ttest.csv"))
+
 
 cat("Successfully saved all statistical summaries to:", stat_test_dir, "\n")
+
+# --- 11. DEG SUBSET ANALYSIS ---
+# Purpose: Analyze Global and Intron Error Rates specifically for genes identified as 
+# differentially expressed (Up-regulated: padj < 0.05, log2FC > 0) in the DESeq2 analysis.
+# Saves plots as PNG and SVG.
+
+library(readxl) # Ensure readxl is loaded
+library(svglite) # Required for saving as SVG
+
+# Define file path for DEG data
+deg_file_path <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Documents/Tables_Final/DESeq mRNA/relevant_deseq_tables/HeatShock_Recovery_vs_Control_DEG.xlsx"
+
+# Ensure figures directory exists (using the variable defined in your Section 10)
+# If running this chunk independently, ensure 'figures_dir' is defined:
+if (!exists("figures_dir")) {
+  figures_dir <- "Variant_Analysis/figures"
+  if (!dir.exists(figures_dir)) dir.create(figures_dir, recursive = TRUE)
+}
+
+# Ensure tables directory exists for CSV output
+if (!exists("tables_dir")) {
+  tables_dir <- "Variant_Analysis/tables"
+  if (!dir.exists(tables_dir)) dir.create(tables_dir, recursive = TRUE)
+}
+  
+# Define a helper function to perform the subset analysis and save plots
+analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
+  
+  # Create a filesystem-friendly name from the label (replace spaces/symbols with underscores)
+  clean_name <- gsub("[^[:alnum:]]", "_", label)
+  
+  cat(paste0("\n======================================================\n"))
+  cat(paste0("Processing DEG Subset: ", label, "\n"))
+  cat(paste0("======================================================\n"))
+  
+  # 1. Read and Filter DEG Data
+  deg_data <- read_excel(deg_file_path, sheet = sheet_name)
+  # Filter: padj < 0.05 AND log2FoldChange > 0
+  # Assumes Gene ID is in the first column
+  target_genes <- deg_data %>%
+    filter(padj < 0.05, log2FoldChange > 0) %>%
+    pull(1) 
+  
+  cat(paste0("Identified ", length(target_genes), " up-regulated genes (padj < 0.05, log2FC > 0).\n"))
+  
+  if(length(target_genes) == 0) {
+    cat("No genes met the criteria. Skipping analysis.\n")
+    return(NULL)
+  }
+  
+  # ---------------------------------------------------------
+  # A. Global Error Rate for DEG Subset
+  # ---------------------------------------------------------
+  
+  # Filter variants
+  deg_variants <- variants_df %>% 
+    filter(GENE %in% target_genes)
+  
+  # Calculate Error Rate
+  deg_error_rate_data <- deg_variants %>%
+    group_by(Sample, Replicate) %>%
+    summarise(
+      Total_Alt = sum(AD_Alt),
+      Total_Ref = sum(AD_Ref),
+      Error_Rate = Total_Alt / (Total_Alt + Total_Ref),
+      .groups = 'drop'
+    )
+  
+  # Stats (Wilcoxon)
+  stat_test <- deg_error_rate_data %>%
+    rstatix::wilcox_test(Error_Rate ~ Sample, detailed = TRUE)
+  print(stat_test)
+  
+  # Plot
+  p_global <- ggplot(deg_error_rate_data, aes(x = Sample, y = Error_Rate, fill = Sample)) +
+    geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.3) +
+    geom_jitter(width = 0.3, height = 0) +
+    scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0.15, 0.15))) +
+    scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+    labs(
+      title = paste0("Global Error Rate\n(", label, ")"),
+      subtitle = paste("Wilcoxon p-value:", format.pval(stat_test$p, digits = 3)),
+      x = "Sample",
+      y = "Error Rate (Non-Ref/Total)"
+    ) +
+    theme_cowplot(font_size = 12, font_family = "Arial") +
+    theme(legend.position = "none")
+  
+  print(p_global)
+  
+  # --- SAVE GLOBAL PLOTS ---
+  ggsave(filename = file.path(figures_dir, paste0("DEG_Global_Error_", clean_name, ".png")), 
+         plot = p_global, width = 4, height = 4)
+  ggsave(filename = file.path(figures_dir, paste0("DEG_Global_Error_", clean_name, ".svg")), 
+         plot = p_global, width = 4, height = 4)
+
+  # --- SAVE GLOBAL DATA TABLE ---
+  write_csv(deg_error_rate_data, file.path(tables_dir, paste0("DEG_Global_Error_Data_", clean_name, ".csv")))
+  
+  # ---------------------------------------------------------
+  # B. Intron Error Rate for DEG Subset
+  # ---------------------------------------------------------
+  
+  # Filter intron variants
+  deg_intron_variants <- intron_df %>% 
+    filter(GENE %in% target_genes)
+  
+  if(nrow(deg_intron_variants) > 0) {
+    # Calculate Error Rate
+    deg_intron_rates <- deg_intron_variants %>%
+      group_by(Intron_Status, Sample, Replicate) %>%
+      summarise(
+        Total_Alt = sum(AD_Alt),
+        Total_Ref = sum(AD_Ref),
+        Error_Rate = Total_Alt / (Total_Alt + Total_Ref),
+        .groups = 'drop'
+      )
+
+    # --- SAVE INTRON DATA TABLE ---
+    write_csv(deg_intron_rates, file.path(tables_dir, paste0("DEG_Intron_Error_Data_", clean_name, ".csv")))
+
+    # --- Plot 1: Genes WITH Introns ---
+    intron_only_data <- deg_intron_rates %>% filter(Intron_Status == "Genes with Introns")
+    
+    if(nrow(intron_only_data) > 0) {
+      p_intron_only <- ggplot(intron_only_data, aes(x = Sample, y = Error_Rate, fill = Sample)) +
+        geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.3) +
+        geom_jitter(width = 0.3, height = 0) +
+        scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0.15, 0.15))) +
+        scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+        labs(
+          title = paste0("Error Rate: Genes WITH Introns\n(", label, ")"),
+          x = "Sample",
+          y = "Error Rate"
+        ) +
+        theme_cowplot(font_size = 12, font_family = "Arial") +
+        theme(legend.position = "none")
+      
+      print(p_intron_only)
+      ggsave(filename = file.path(figures_dir, paste0("DEG_With_Intron_Error_", clean_name, ".png")), plot = p_intron_only, width = 4, height = 4)
+      ggsave(filename = file.path(figures_dir, paste0("DEG_With_Intron_Error_", clean_name, ".svg")), plot = p_intron_only, width = 4, height = 4)
+    } else {
+      cat(paste0("Info: No variant data found for 'Genes with Introns' in subset: ", label, "\n"))
+    }
+
+    # --- Plot 2: Genes WITHOUT Introns ---
+    no_intron_data <- deg_intron_rates %>% filter(Intron_Status == "Genes without Introns")
+    
+    if(nrow(no_intron_data) > 0) {
+      p_no_intron <- ggplot(no_intron_data, aes(x = Sample, y = Error_Rate, fill = Sample)) +
+        geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.3) +
+        geom_jitter(width = 0.3, height = 0) +
+        scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0.15, 0.15))) +
+        scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+        labs(
+          title = paste0("Error Rate: Genes WITHOUT Introns\n(", label, ")"),
+          x = "Sample",
+          y = "Error Rate"
+        ) +
+        theme_cowplot(font_size = 12, font_family = "Arial") +
+        theme(legend.position = "none")
+        
+       print(p_no_intron)
+       ggsave(filename = file.path(figures_dir, paste0("DEG_No_Intron_Error_", clean_name, ".png")), plot = p_no_intron, width = 4, height = 4)
+       ggsave(filename = file.path(figures_dir, paste0("DEG_No_Intron_Error_", clean_name, ".svg")), plot = p_no_intron, width = 4, height = 4)
+    } else {
+       cat(paste0("Info: No variant data found for 'Genes without Introns' in subset: ", label, "\n"))
+    }
+    
+  } else {
+    cat("Insufficient data for Intron analysis on this subset.\n")
+  }
+}
+
+# --- Execute Analysis for both sets ---
+
+# 1. N2 Up-regulated Genes
+analyze_deg_subset(
+  sheet_name = "N2_30mHS.vs.N2_Ctrl", 
+  label = "N2 HS Up-regulated Genes", 
+  variants_df = variants_filtered,
+  intron_df = variants_intron_analysis
+)
+
+# 2. PRDE1 Up-regulated Genes
+analyze_deg_subset(
+  sheet_name = "PRDE1_30mHS.vs.PRDE1_Ctrl", 
+  label = "PRDE1 HS Up-regulated Genes", 
+  variants_df = variants_filtered,
+  intron_df = variants_intron_analysis
+)
+
+# 3. PRDE1 Ctrl vs N2 Ctrl
+analyze_deg_subset(
+  sheet_name = "PRDE1_Ctrl.vs.N2_Ctrl", 
+  label = "PRDE1 Ctrl vs N2 Ctrl", 
+  variants_df = variants_filtered,
+  intron_df = variants_intron_analysis
+)
+
+# 4. PRDE1 HS vs N2 HS
+analyze_deg_subset(
+  sheet_name = "PRDE1_30mHS.vs.N2_30mHS", 
+  label = "PRDE1 HS vs N2 HS", 
+  variants_df = variants_filtered,
+  intron_df = variants_intron_analysis
+)
+
 ```

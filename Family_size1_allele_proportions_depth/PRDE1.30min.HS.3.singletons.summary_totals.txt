@@ -1,2 +1,0 @@
-Total_Reads	Total_Alternative_Reads	Ratio_Alt_vs_Total
-9063950	33748	0.003723
