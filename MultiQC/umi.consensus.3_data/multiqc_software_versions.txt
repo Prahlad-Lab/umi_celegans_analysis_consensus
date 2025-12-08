@@ -1,0 +1,3 @@
+Sample	SnpEff	FastQC
+FastQC		0.12.1
+SnpEff	5.2	
