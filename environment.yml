@@ -12,3 +12,4 @@ dependencies:
   - snpeff=5.2
   - samtools=1.22.1
   - star=2.7.11b
+  - multiqc=1.32
