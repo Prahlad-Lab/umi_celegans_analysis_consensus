@@ -20,7 +20,34 @@ Change directory to the cloned repository:
 cd umi_celegans_analysis
 ```
 
-### Step 3: Extract Input Files
+### Step 3: Download FASTQ Files
+
+The sequencing data (FASTQ files) for this analysis are available from the European Nucleotide Archive (ENA) under project accession **PRJEB101605**. The repository includes a download script that will retrieve all necessary FASTQ files:
+
+```bash
+# Make the download script executable
+chmod +x ena-file-download-read_run-PRJEB101605-fastq_ftp-20251208-1709.sh
+
+# Run the download script
+./ena-file-download-read_run-PRJEB101605-fastq_ftp-20251208-1709.sh
+```
+
+This script will download 12 FASTQ files (paired-end reads for 6 samples) from the EBI FTP server. The files include:
+- ERR15764772_1.fastq.gz and ERR15764772_2.fastq.gz
+- ERR15764773_1.fastq.gz and ERR15764773_2.fastq.gz
+- ERR15764774_1.fastq.gz and ERR15764774_2.fastq.gz
+- ERR15764775_1.fastq.gz and ERR15764775_2.fastq.gz
+- ERR15764776_1.fastq.gz and ERR15764776_2.fastq.gz
+- ERR15764777_1.fastq.gz and ERR15764777_2.fastq.gz
+
+**Note:** The download script uses `wget -nc` (no-clobber) which will skip files that have already been downloaded, making it safe to re-run if interrupted.
+
+**Requirements:**
+- `wget` must be installed on your system
+- Sufficient disk space (FASTQ files can be several GB each)
+- Stable internet connection for downloading from EBI FTP server
+
+### Step 4: Extract Input Files
 
 The repository includes compressed input files that need to be extracted before running the analysis:
 
@@ -32,7 +59,7 @@ cd ..
 
 This will extract the reference genome files and other required input data.
 
-### Step 4: Set Up Conda Environments
+### Step 5: Set Up Conda Environments
 
 Return to the main repository folder and set up the required conda environments. You have two options:
 
@@ -56,7 +83,7 @@ conda activate umi_celegans_analysis
 
 This creates individual environments for each tool (fastqc, bcftools, umi_tools, gatk4, fgbio, snpeff, samtools.v1.22, STAR).
 
-### Step 5: Run the Analysis Pipeline
+### Step 6: Run the Analysis Pipeline
 
 The main analysis pipeline is `UMI_analysis_pipeline_11.sh`. This script performs the complete UMI-based variant calling analysis using consensus reads.
 
@@ -121,7 +148,7 @@ conda activate umi_celegans_analysis
 
 **Testing Information:** The pipeline was tested with UB CCR (University at Buffalo Center for Computational Research), using 32 cores and 100GB of memory with a 48-hour time limit.
 
-### Step 6: Calculate UMI Metrics (Optional Quality Control)
+### Step 7: Calculate UMI Metrics (Optional Quality Control)
 
 After running the main analysis pipeline, you can calculate detailed UMI metrics to assess the quality and complexity of your UMI-based sequencing data. The `run_umi_metrics.sh` script generates family size histograms and summary statistics for each sample.
 
@@ -232,7 +259,7 @@ If the script fails:
    - Remove or comment out the `#SBATCH` directives at the top of the script
    - Ensure you have sufficient memory (at least 8GB per parallel job)
 
-### Step 7: Set Up R Environment for Variant Analysis
+### Step 8: Set Up R Environment for Variant Analysis
 
 To perform downstream variant analysis using R scripts, you need to set up an R environment with the required packages:
 
@@ -252,7 +279,7 @@ Activate the R environment:
 conda activate r_variant_analysis
 ```
 
-### Step 8: Run R Analysis Scripts
+### Step 9: Run R Analysis Scripts
 
 The `R_Scripts/` directory contains scripts for downstream analysis:
 
@@ -346,7 +373,9 @@ conda create -n STAR -c bioconda -c conda-forge star=2.7.11b -y
 
 ## Data Availability
 
-The fastq.gz files required to run this analysis pipeline will be made available through the Gene Expression Omnibus (GEO). The GEO accession number will be provided soon.
+The FASTQ files required to run this analysis pipeline are available from the European Nucleotide Archive (ENA) under project accession **PRJEB101605**. 
+
+For detailed instructions on downloading the FASTQ files, see [Step 3: Download FASTQ Files](#step-3-download-fastq-files) in the Getting Started section. The repository includes a download script (`ena-file-download-read_run-PRJEB101605-fastq_ftp-20251208-1709.sh`) that automates the download of all required FASTQ files from the EBI FTP server.
 
 ## Usage
 
