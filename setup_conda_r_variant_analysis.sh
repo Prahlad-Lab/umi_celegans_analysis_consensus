@@ -5,7 +5,7 @@
 #
 # This script creates a new conda environment named 'r_variant_analysis'
 # with all the required R packages (from CRAN and Bioconductor)
-# to run both R scripts.
+# to run all R scripts in the R_Scripts directory.
 # ---
 
 # Define the name of the environment
@@ -36,8 +36,18 @@ conda create -n $ENV_NAME \
   'r-kableextra' \
   'r-officer' \
   'r-flextable' \
+  'r-broom' \
+  'r-eulerr' \
+  'r-patchwork' \
+  'r-readxl' \
+  'r-svglite' \
   'bioconductor-rtracklayer' \
   'bioconductor-plyranges' \
+  'bioconductor-genomicfeatures' \
+  'bioconductor-genomicranges' \
+  'bioconductor-dose' \
+  'bioconductor-clusterprofiler' \
+  'bioconductor-org.ce.eg.db' \
   -y
 
 # Check if creation was successful
@@ -48,7 +58,14 @@ if [ $? -eq 0 ]; then
   echo "To activate this environment, run:"
   echo "  conda activate $ENV_NAME"
   echo ""
-  echo "To deactivate it, run:"
+  echo "IMPORTANT: One additional package needs to be installed from Bioconductor:"
+  echo "  - wbData (not available in conda)"
+  echo ""
+  echo "After activating the environment, install it with:"
+  echo "  Rscript -e \"if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager')\""
+  echo "  Rscript -e \"BiocManager::install('wbData')\""
+  echo ""
+  echo "To deactivate the environment, run:"
   echo "  conda deactivate"
   echo ""
 else
