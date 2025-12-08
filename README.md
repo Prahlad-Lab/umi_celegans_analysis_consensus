@@ -121,7 +121,118 @@ conda activate umi_celegans_analysis
 
 **Testing Information:** The pipeline was tested with UB CCR (University at Buffalo Center for Computational Research), using 32 cores and 100GB of memory with a 48-hour time limit.
 
-### Step 6: Set Up R Environment for Variant Analysis
+### Step 6: Calculate UMI Metrics (Optional Quality Control)
+
+After running the main analysis pipeline, you can calculate detailed UMI metrics to assess the quality and complexity of your UMI-based sequencing data. The `run_umi_metrics.sh` script generates family size histograms and summary statistics for each sample.
+
+**What the script does:**
+- Generates UMI family size histograms showing the distribution of reads per UMI family
+- Calculates key quality metrics:
+  - **Total Reads Processed**: Total number of sequenced reads
+  - **Total UMI Families**: Number of unique molecular families identified
+  - **Mean Family Size**: Average number of reads per UMI family
+  - **Saturation**: Ratio of unique molecules to total reads (lower values indicate higher duplication/lower library complexity)
+  - **Singleton Families (%)**: Percentage of UMI families with only one read (may indicate under-sequencing or technical artifacts)
+
+**When to use it:**
+- After completing the main pipeline (particularly after the UMI-aware duplicate marking step)
+- To assess library complexity and sequencing depth
+- To evaluate whether you have sufficient UMI diversity for your analysis
+- To compare quality metrics across different samples or experimental conditions
+
+**Prerequisites:**
+- The main analysis pipeline (`UMI_analysis_pipeline_11.sh`) must have completed successfully
+- The `UMIAwareDuplicateMarkingGenomeNoClip/` output directory must contain coordinate-sorted BAM files
+- The `umi_celegans_analysis` conda environment must be activated
+
+**Configuration:**
+
+Before running the script, you may need to adjust the following variables at the top of `run_umi_metrics.sh`:
+
+```bash
+# Base output directory (should match your pipeline output location)
+# Replace with your actual output directory path
+BASE_OUTPUT_DIR="/path/to/your/output"  # e.g., "/vscratch/grp-vprahlad/umi_celegans_consensus"
+
+# Sample names (update to match your samples)
+# Example: sample_list=("sample1" "sample2" "sample3")
+sample_list=("N2.30min.HS.1" "N2.30min.HS.2" "N2.30min.HS.3" 
+             "PRDE1.30min.HS.1" "PRDE1.30min.HS.2" "PRDE1.30min.HS.3")
+```
+
+**To run the script:**
+
+```bash
+# Activate the conda environment
+conda activate umi_celegans_analysis
+
+# Run the metrics script
+./run_umi_metrics.sh
+```
+
+**For HPC/SLURM environments:**
+```bash
+# Submit as a batch job
+sbatch run_umi_metrics.sh
+```
+
+**Output files:**
+
+The script creates a `UMI_Metrics/` directory in your output folder with the following files for each sample:
+
+1. **`{sample}.family_size_histogram.txt`** - Tab-separated file showing:
+   - Column 1: Family size (number of reads per UMI)
+   - Column 2: Count (number of families with that size)
+
+2. **`{sample}.summary_stats.txt`** - Text file with calculated metrics summary
+
+**Example output interpretation:**
+
+```
+--- Metrics Summary for N2.30min.HS.1 ---
+Total Reads Processed: 45823791
+Total UMI Families:    12547823
+Mean Family Size:      3.65
+Saturation (Unique/Total): 0.274
+Singleton Families (%): 35.2
+```
+
+**Interpreting the metrics:**
+- **Higher Mean Family Size** (e.g., >3): Good UMI coverage, multiple reads per molecule
+- **Lower Saturation** (e.g., <0.3): Higher library complexity, more unique molecules relative to reads
+- **Lower Singleton %** (e.g., <40%): Better sequencing depth, most molecules have multiple reads
+- **Higher Singleton %** (e.g., >60%): May indicate under-sequencing or need for deeper coverage
+
+**Performance considerations:**
+- The script processes samples in parallel (default: 6 samples at a time)
+- Memory requirement: ~8GB per sample (controlled by `-Xmx8g` flag)
+- Runtime: Typically 30 minutes to 2 hours depending on BAM file size
+- Adjust parallelization in the script: Change `parallel -j 6` to match available cores
+  - Example: For a system with 16 cores and 64GB RAM, you could use `parallel -j 8` (8 cores × 8GB = 64GB)
+  - Rule of thumb: Set `-j` value such that `(number of parallel jobs × 8GB)` doesn't exceed your total available memory
+
+**Troubleshooting:**
+
+If the script fails:
+1. **Check input files exist:**
+   ```bash
+   ls -lh ${BASE_OUTPUT_DIR}/UMIAwareDuplicateMarkingGenomeNoClip/*.MergeBamAlignment.coordinate_sorted.bam
+   ```
+
+2. **Verify conda environment:**
+   ```bash
+   conda activate umi_celegans_analysis
+   fgbio --version  # Should show fgbio version 2.5.0
+   ```
+
+3. **Check available memory:**
+   - If you get "OutOfMemoryError", increase the `-Xmx8g` value in the script (e.g., to `-Xmx16g`)
+
+4. **For local runs (non-SLURM):**
+   - Remove or comment out the `#SBATCH` directives at the top of the script
+   - Ensure you have sufficient memory (at least 8GB per parallel job)
+
+### Step 7: Set Up R Environment for Variant Analysis
 
 To perform downstream variant analysis using R scripts, you need to set up an R environment with the required packages:
 
@@ -141,7 +252,7 @@ Activate the R environment:
 conda activate r_variant_analysis
 ```
 
-### Step 7: Run R Analysis Scripts
+### Step 8: Run R Analysis Scripts
 
 The `R_Scripts/` directory contains scripts for downstream analysis:
 
