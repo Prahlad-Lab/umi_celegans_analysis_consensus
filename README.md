@@ -384,7 +384,7 @@ This comprehensive R script performs multi-level analysis of transcriptional err
 # Set your working directory (where the pipeline output is located)
 setwd("/path/to/your/pipeline/output")
 
-# Path to allele proportion files (adjust OUTPUT_DIR variable if needed)
+# Path to allele proportion files
 consensus_path <- "/path/to/your/pipeline/output/Allele_Proportions"
 
 # GTF annotation file (should be in your input directory)
@@ -404,7 +404,7 @@ Rscript R_Scripts/transcriptional_error_analysis_4.R
 
 # Or run interactively in R/RStudio
 R
-> source("R_Scripts/transcriptional_error_analysis_4.R")
+source("R_Scripts/transcriptional_error_analysis_4.R")
 ```
 
 **Output:** 
