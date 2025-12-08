@@ -1,0 +1,2 @@
+estimate,estimate1,estimate2,.y.,group1,group2,n1,n2,statistic,p,df,conf.low,conf.high,method,alternative
+-0.01123521655013121,0.18672119290815148,0.1979564094582827,Proportion_Alt,N2,PRDE1,3,3,-1.9484078033003374,0.169,2.4081407900284835,-0.03242154096536493,0.00995110786510251,T-test,two.sided

@@ -1,0 +1,5 @@
+Quantile,estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
+Gene Length Q1: 30-1214bp,-0.05943659815441196,Proportion_Alt,N2,PRDE1,3,3,0,0.1,-0.09399126080552234,-0.030922362922967184,Wilcoxon,two.sided
+Gene Length Q2: 1215-2026bp,6.685268528883181e-5,Proportion_Alt,N2,PRDE1,3,3,5,1,-0.05091816637292196,0.012214536768885176,Wilcoxon,two.sided
+Gene Length Q3: 2027-3633bp,-0.005157833370666304,Proportion_Alt,N2,PRDE1,3,3,3,0.7,-0.022827243580885004,0.027718276841374567,Wilcoxon,two.sided
+Gene Length Q4: 3634-102756bp,-0.008899882382522872,Proportion_Alt,N2,PRDE1,3,3,0,0.1,-0.017223109210191295,-0.0011700733413326225,Wilcoxon,two.sided
