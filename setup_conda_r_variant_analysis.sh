@@ -43,6 +43,7 @@ conda create -n $ENV_NAME \
   'bioconductor-rtracklayer' \
   'bioconductor-plyranges' \
   'bioconductor-genomicfeatures' \
+  'bioconductor-txdbmaker' \
   'bioconductor-genomicranges' \
   'bioconductor-dose' \
   'bioconductor-clusterprofiler' \
