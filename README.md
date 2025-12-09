@@ -2,6 +2,21 @@
 
 This repository contains scripts and tools for analyzing UMI (Unique Molecular Identifier) data from *C. elegans* samples.
 
+## Example Results
+
+This repository includes example results from running the full pipeline on complete FASTQ files. The following directories contain outputs that demonstrate what you can expect after completing the analysis:
+
+- **`MultiQC/`** - Example aggregated quality control reports and metrics from the full dataset
+- **`UMI_Metrics/`** - Example UMI family size histograms and summary statistics for all samples
+- **`Analysis_Results_Combined/`** - Example downstream analysis results including:
+  - Transcriptional error rate tables and statistics
+  - Frequency distribution tables (all sites and variant sites only)
+  - GO enrichment analysis results and visualizations
+  - Global error rate comparisons between sample groups
+- **`Variant_Analysis/`** - Example variant calling analysis results including statistical tests and visualizations
+
+These folders are provided as references to help you understand the expected output structure and content when you run the pipeline on your own data.
+
 ## Getting Started
 
 ### Step 1: Clone the Repository
