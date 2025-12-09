@@ -334,21 +334,21 @@ This creates a conda environment called `r_variant_analysis` with all necessary 
 - **Statistical analysis**: rstatix, broom
 - **Document generation**: knitr, kableExtra, officer, flextable, readxl
 - **Euler diagrams**: eulerr
+- **Package installation tools**: remotes - For installing packages from GitHub
 - **Bioconductor genomics packages**: 
   - rtracklayer, plyranges - For working with genomic ranges and tracks
   - GenomicFeatures, GenomicRanges - For genomic feature manipulation
   - DOSE, clusterProfiler - For functional enrichment analysis
   - org.Ce.eg.db - C. elegans genome annotation database
 
-**Important:** After creating the environment, you need to install one additional package from Bioconductor:
+**Important:** After creating the environment, you need to install one additional package from GitHub:
 
 ```bash
 # Activate the R environment
 conda activate r_variant_analysis
 
 # Install wbData package (WormBase data access)
-
-Rscript -e "install.packages('wbData')"
+Rscript -e "remotes::install_github('AlexWeinreb/wbData')"
 ```
 
 The wbData package provides access to WormBase gene IDs and annotations needed for the transcriptional error analysis.
