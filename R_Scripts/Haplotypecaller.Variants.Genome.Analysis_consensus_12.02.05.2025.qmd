@@ -309,19 +309,26 @@ mismatch_error_data <- variants_filtered %>%
   left_join(total_depth_per_replicate, by = c("Sample", "Replicate")) %>%
   mutate(Mismatch_Error_Rate = Total_Alt_Mismatch / Total_Replicate_Depth)
 
-# Perform Wilcoxon test only on mismatch types with enough data
-stat_test_mismatch_error_rate <- mismatch_error_data %>%
-  group_by(Mismatch_Type) %>%
-  filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
-  rstatix::wilcox_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
-print(stat_test_mismatch_error_rate)
-
-# ADDED: T-test analysis
-stat_t_test_mismatch_error_rate <- mismatch_error_data %>%
-  group_by(Mismatch_Type) %>%
-  filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
-  rstatix::t_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
-print(stat_t_test_mismatch_error_rate)
+# Check if there are sufficient data points for statistical analysis
+if(nrow(mismatch_error_data) >= 6) {  # At least 3 replicates per sample (2 samples x 3 replicates = 6)
+  # Perform Wilcoxon test only on mismatch types with enough data
+  stat_test_mismatch_error_rate <- mismatch_error_data %>%
+    group_by(Mismatch_Type) %>%
+    filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
+    rstatix::wilcox_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
+  print(stat_test_mismatch_error_rate)
+  
+  # ADDED: T-test analysis
+  stat_t_test_mismatch_error_rate <- mismatch_error_data %>%
+    group_by(Mismatch_Type) %>%
+    filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
+    rstatix::t_test(Mismatch_Error_Rate ~ Sample, detailed = TRUE)
+  print(stat_t_test_mismatch_error_rate)
+} else {
+  cat("Insufficient data for Mismatch Error Rate analysis. Skipping.\n")
+  stat_test_mismatch_error_rate <- tibble()
+  stat_t_test_mismatch_error_rate <- tibble()
+}
 
 
 # --- 6F. STATISTICAL ANALYSIS: SnpEff Functional Class Rate ---
@@ -333,19 +340,26 @@ functional_class_rate_data <- variants_filtered %>%
   left_join(total_depth_per_replicate, by = c("Sample", "Replicate")) %>%
   mutate(Class_Rate = Total_Alt_Class / Total_Replicate_Depth)
 
-# Perform Wilcoxon test only on classes with enough data
-stat_test_functional_class_rate <- functional_class_rate_data %>%
-  group_by(Functional_Class) %>%
-  filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
-  rstatix::wilcox_test(Class_Rate ~ Sample, detailed = TRUE)
-print(stat_test_functional_class_rate)
-
-# ADDED: T-test analysis
-stat_t_test_functional_class_rate <- functional_class_rate_data %>%
-  group_by(Functional_Class) %>%
-  filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
-  rstatix::t_test(Class_Rate ~ Sample, detailed = TRUE)
-print(stat_t_test_functional_class_rate)
+# Check if there are sufficient data points for statistical analysis
+if(nrow(functional_class_rate_data) >= 6) {  # At least 3 replicates per sample
+  # Perform Wilcoxon test only on classes with enough data
+  stat_test_functional_class_rate <- functional_class_rate_data %>%
+    group_by(Functional_Class) %>%
+    filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
+    rstatix::wilcox_test(Class_Rate ~ Sample, detailed = TRUE)
+  print(stat_test_functional_class_rate)
+  
+  # ADDED: T-test analysis
+  stat_t_test_functional_class_rate <- functional_class_rate_data %>%
+    group_by(Functional_Class) %>%
+    filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
+    rstatix::t_test(Class_Rate ~ Sample, detailed = TRUE)
+  print(stat_t_test_functional_class_rate)
+} else {
+  cat("Insufficient data for Functional Class Rate analysis. Skipping.\n")
+  stat_test_functional_class_rate <- tibble()
+  stat_t_test_functional_class_rate <- tibble()
+}
 
 # --- 6G. STATISTICAL ANALYSIS: SnpEff Effect Type Rate ---
 cat("\n--- Running Wilcoxon Test on SnpEff Effect Type Rate ---\n")
@@ -356,12 +370,18 @@ effect_type_rate_data <- variants_filtered %>%
   left_join(total_depth_per_replicate, by = c("Sample", "Replicate")) %>%
   mutate(Effect_Rate = Total_Alt_Effect / Total_Replicate_Depth)
 
-# Perform Wilcoxon test only on effect types with enough data
-stat_test_effect_type_rate <- effect_type_rate_data %>%
-  group_by(Effect_Type) %>%
-  filter(sum(Effect_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Effect_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
-  rstatix::wilcox_test(Effect_Rate ~ Sample, detailed = TRUE)
-print(stat_test_effect_type_rate)
+# Check if there are sufficient data points for statistical analysis
+if(nrow(effect_type_rate_data) >= 6) {  # At least 3 replicates per sample
+  # Perform Wilcoxon test only on effect types with enough data
+  stat_test_effect_type_rate <- effect_type_rate_data %>%
+    group_by(Effect_Type) %>%
+    filter(sum(Effect_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Effect_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
+    rstatix::wilcox_test(Effect_Rate ~ Sample, detailed = TRUE)
+  print(stat_test_effect_type_rate)
+} else {
+  cat("Insufficient data for Effect Type Rate analysis. Skipping.\n")
+  stat_test_effect_type_rate <- tibble()
+}
 
 # ADDED: T-test analysis
 #stat_t_test_effect_type_rate <- effect_type_rate_data %>%
@@ -605,44 +625,47 @@ error_rate_plot <- ggplot(error_rate_data, aes(x = Sample, y = Error_Rate, fill 
 print(ggplotly(error_rate_plot))
 
 # 7E. Mismatch Error Rate (Consolidated Bar Plot)
-mismatch_summary <- mismatch_error_data %>%
-  group_by(Sample, Mismatch_Type) %>%
-  summarise(
-    mean_rate = mean(Mismatch_Error_Rate),
-    se_rate = sd(Mismatch_Error_Rate) / sqrt(n()),
-    .groups = 'drop'
-  )
-
-mismatch_plots = mismatch_summary |> 
-  mutate(Mismatch_Type = fct_relevel(Mismatch_Type,c("A>G", "G>A", "G>C" ,"T>C", "A>C", "A>T", "C>A" ,"C>G" ,"C>T", "G>T", "T>A" ,"T>G"))) |> 
-  ggplot( aes(x = Mismatch_Type, y = mean_rate, fill = Sample)) +
-  geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
-  geom_errorbar(
-    aes(ymin = mean_rate - se_rate, ymax = mean_rate + se_rate),
-    width = 0.2,
-    position = position_dodge(0.7)
-  ) +
-  geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
-  scale_y_continuous(labels = scales::scientific, expand = expansion(mult = c(0, 0.1))) +
-  scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
-  labs(
-    x = "Mismatch Type",
-    y = "Mean Mismatch Error Rate"
-  ) +
-  theme_cowplot(font_size = 12, font_family = "Arial") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1, vjust = 1))
+if(nrow(mismatch_error_data) >= 6) {
+  mismatch_summary <- mismatch_error_data %>%
+    group_by(Sample, Mismatch_Type) %>%
+    summarise(
+      mean_rate = mean(Mismatch_Error_Rate),
+      se_rate = sd(Mismatch_Error_Rate) / sqrt(n()),
+      .groups = 'drop'
+    )
+  
+  mismatch_plots = mismatch_summary |> 
+    mutate(Mismatch_Type = fct_relevel(Mismatch_Type,c("A>G", "G>A", "G>C" ,"T>C", "A>C", "A>T", "C>A" ,"C>G" ,"C>T", "G>T", "T>A" ,"T>G"))) |> 
+    ggplot( aes(x = Mismatch_Type, y = mean_rate, fill = Sample)) +
+    geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
+    geom_errorbar(
+      aes(ymin = mean_rate - se_rate, ymax = mean_rate + se_rate),
+      width = 0.2,
+      position = position_dodge(0.7)
+    ) +
+    geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
+    scale_y_continuous(labels = scales::scientific, expand = expansion(mult = c(0, 0.1))) +
+    scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+    labs(
+      x = "Mismatch Type",
+      y = "Mean Mismatch Error Rate"
+    ) +
+    theme_cowplot(font_size = 12, font_family = "Arial") +
+    theme(axis.text.x = element_text(angle = 45,hjust = 1, vjust = 1))
+}
 
 
 # 7F. SnpEff Functional Class Rate Plot
-functional_class_summary <- functional_class_rate_data %>%
-  group_by(Sample, Functional_Class) %>%
-  summarise(
-    mean_rate = mean(Class_Rate, na.rm = TRUE),
-    se_rate = sd(Class_Rate, na.rm = TRUE) / sqrt(n()),
-    .groups = 'drop'
-  )
-  
-functional_class_plot <- ggplot(functional_class_summary, aes(x = Functional_Class, y = mean_rate, fill = Sample)) +
+if(nrow(functional_class_rate_data) >= 6) {
+  functional_class_summary <- functional_class_rate_data %>%
+    group_by(Sample, Functional_Class) %>%
+    summarise(
+      mean_rate = mean(Class_Rate, na.rm = TRUE),
+      se_rate = sd(Class_Rate, na.rm = TRUE) / sqrt(n()),
+      .groups = 'drop'
+    )
+    
+  functional_class_plot <- ggplot(functional_class_summary, aes(x = Functional_Class, y = mean_rate, fill = Sample)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
   geom_errorbar(
     aes(ymin = mean_rate - se_rate, ymax = mean_rate + se_rate),
@@ -658,33 +681,35 @@ functional_class_plot <- ggplot(functional_class_summary, aes(x = Functional_Cla
   ) +
   theme_cowplot(font_size = 12, font_family = "Arial") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1, vjust = 1))
+}
 
 # 7G. SnpEff Effect Type Rate Plot
-# Choose top N effects to plot based on overall abundance
-top_effects <- effect_type_rate_data %>%
-  group_by(Effect_Type) %>%
-  summarise(total_alt_ad = sum(Total_Alt_Effect, na.rm = TRUE)) %>%
-  pull(Effect_Type)
-
-effect_type_summary <- effect_type_rate_data %>%
-  filter(Effect_Type %in% top_effects) %>%
-  group_by(Sample, Effect_Type) %>%
-  summarise(
-    mean_rate = mean(Effect_Rate, na.rm = TRUE),
-    se_rate = sd(Effect_Rate, na.rm = TRUE) / sqrt(n()),
-    .groups = 'drop'
-  )
-
-effect_type_plot <- ggplot(effect_type_summary, aes(x = Effect_Type, y = mean_rate, fill = Sample)) +
-  geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
-  geom_errorbar(
-    aes(ymin = mean_rate - se_rate, ymax = mean_rate + se_rate),
-    width = 0.2,
-    position = position_dodge(0.7)
-  ) +
-  geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
-  scale_y_continuous(labels = scales::scientific, expand = expansion(mult = c(0, 0.15))) +
-  scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
+if(nrow(effect_type_rate_data) >= 6) {
+  # Choose top N effects to plot based on overall abundance
+  top_effects <- effect_type_rate_data %>%
+    group_by(Effect_Type) %>%
+    summarise(total_alt_ad = sum(Total_Alt_Effect, na.rm = TRUE)) %>%
+    pull(Effect_Type)
+  
+  effect_type_summary <- effect_type_rate_data %>%
+    filter(Effect_Type %in% top_effects) %>%
+    group_by(Sample, Effect_Type) %>%
+    summarise(
+      mean_rate = mean(Effect_Rate, na.rm = TRUE),
+      se_rate = sd(Effect_Rate, na.rm = TRUE) / sqrt(n()),
+      .groups = 'drop'
+    )
+  
+  effect_type_plot <- ggplot(effect_type_summary, aes(x = Effect_Type, y = mean_rate, fill = Sample)) +
+    geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +
+    geom_errorbar(
+      aes(ymin = mean_rate - se_rate, ymax = mean_rate + se_rate),
+      width = 0.2,
+      position = position_dodge(0.7)
+    ) +
+    geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
+    scale_y_continuous(labels = scales::scientific, expand = expansion(mult = c(0, 0.15))) +
+    scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
   labs(
     x = "SnpEff Effect Type",
     y = "Mean Error Rate \nper Total Reads"
@@ -1062,9 +1087,15 @@ cat("\nSuccessfully saved summary and intermediary tables to:", tables_dir, "\n"
 ggsave(filename = file.path(figures_dir, "global_allele_proportions.svg"), plot = proportion_plot, width = 4.5, height = 4)
 ggsave(filename = file.path(figures_dir, "alt_allele_proportions_by_type.svg"), plot = allele_read_plot, width = 5, height = 4)
 ggsave(filename = file.path(figures_dir, "global_error_rate.svg"), plot = error_rate_plot, width = 2.625, height = 3)
-ggsave(filename = file.path(figures_dir, "mismatch_error_rate_all.svg"), plot = mismatch_plots, width = 5, height = 3)
-ggsave(filename = file.path(figures_dir, "functional_class_rate.svg"), plot = functional_class_plot, width = 5, height = 4)
-ggsave(filename = file.path(figures_dir, "effect_type_rate.svg"), plot = effect_type_plot, width = 8, height = 6)
+if(exists("mismatch_plots")) {
+  ggsave(filename = file.path(figures_dir, "mismatch_error_rate_all.svg"), plot = mismatch_plots, width = 5, height = 3)
+}
+if(exists("functional_class_plot")) {
+  ggsave(filename = file.path(figures_dir, "functional_class_rate.svg"), plot = functional_class_plot, width = 5, height = 4)
+}
+if(exists("effect_type_plot")) {
+  ggsave(filename = file.path(figures_dir, "effect_type_rate.svg"), plot = effect_type_plot, width = 8, height = 6)
+}
 ggsave(filename = file.path(figures_dir, "nmd_rate.svg"), plot = nmd_rate_plot, width = 3.5, height = 4)
 ggsave(filename = file.path(figures_dir, "lof_rate.svg"), plot = lof_rate_plot, width = 3.5, height = 4)
 ggsave(filename = file.path(figures_dir, "deleterious_rate.svg"), plot = deleterious_rate_plot, width = 3.5, height = 4)
@@ -1087,9 +1118,15 @@ cat("\nSuccessfully saved all plots to:", figures_dir, "\n")
 write_csv(stat_test_alt_proportion, file.path(stat_test_dir, "summary_global_allele_proportions_wilcoxon.csv"))
 write_csv(stat_test_alt_type_proportions, file.path(stat_test_dir, "summary_global_alt_allele_type_proportions_wilcoxon.csv"))
 write_csv(stat_test_error_rate, file.path(stat_test_dir, "summary_global_error_rate_wilcoxon.csv"))
-write_csv(stat_test_mismatch_error_rate, file.path(stat_test_dir, "summary_mismatch_error_rate_wilcoxon.csv"))
-write_csv(stat_test_functional_class_rate, file.path(stat_test_dir, "summary_functional_class_rate_wilcoxon.csv"))
-write_csv(stat_test_effect_type_rate, file.path(stat_test_dir, "summary_effect_type_rate_wilcoxon.csv"))
+if(nrow(stat_test_mismatch_error_rate) > 0) {
+  write_csv(stat_test_mismatch_error_rate, file.path(stat_test_dir, "summary_mismatch_error_rate_wilcoxon.csv"))
+}
+if(nrow(stat_test_functional_class_rate) > 0) {
+  write_csv(stat_test_functional_class_rate, file.path(stat_test_dir, "summary_functional_class_rate_wilcoxon.csv"))
+}
+if(nrow(stat_test_effect_type_rate) > 0) {
+  write_csv(stat_test_effect_type_rate, file.path(stat_test_dir, "summary_effect_type_rate_wilcoxon.csv"))
+}
 write_csv(stat_test_nmd_rate, file.path(stat_test_dir, "summary_nmd_rate_wilcoxon.csv"))
 write_csv(stat_test_lof_rate, file.path(stat_test_dir, "summary_lof_rate_wilcoxon.csv"))
 write_csv(stat_test_deleterious_rate, file.path(stat_test_dir, "summary_deleterious_rate_wilcoxon.csv"))
@@ -1104,8 +1141,12 @@ write_csv(stat_test_intron_wilcox, file.path(stat_test_dir, "summary_intron_erro
 write_csv(stat_t_test_alt_proportion, file.path(stat_test_dir, "summary_global_allele_proportions_ttest.csv"))
 write_csv(stat_t_test_alt_type_proportions, file.path(stat_test_dir, "summary_global_alt_allele_type_proportions_ttest.csv"))
 write_csv(stat_t_test_error_rate, file.path(stat_test_dir, "summary_global_error_rate_ttest.csv"))
-write_csv(stat_t_test_mismatch_error_rate, file.path(stat_test_dir, "summary_mismatch_error_rate_ttest.csv"))
-write_csv(stat_t_test_functional_class_rate, file.path(stat_test_dir, "summary_functional_class_rate_ttest.csv"))
+if(nrow(stat_t_test_mismatch_error_rate) > 0) {
+  write_csv(stat_t_test_mismatch_error_rate, file.path(stat_test_dir, "summary_mismatch_error_rate_ttest.csv"))
+}
+if(nrow(stat_t_test_functional_class_rate) > 0) {
+  write_csv(stat_t_test_functional_class_rate, file.path(stat_test_dir, "summary_functional_class_rate_ttest.csv"))
+}
 #write_csv(stat_t_test_effect_type_rate, file.path(stat_test_dir, "summary_effect_type_rate_ttest.csv"))
 write_csv(stat_t_test_nmd_rate, file.path(stat_test_dir, "summary_nmd_rate_ttest.csv"))
 write_csv(stat_t_test_lof_rate, file.path(stat_test_dir, "summary_lof_rate_ttest.csv"))
@@ -1176,6 +1217,12 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
   deg_variants <- variants_df %>% 
     filter(GENE %in% target_genes)
   
+  # Check if there are sufficient variants for this analysis
+  if(nrow(deg_variants) < 10) {
+    cat(paste0("Insufficient variants (", nrow(deg_variants), ") for DEG subset analysis: ", label, ". Skipping.\n"))
+    return(NULL)
+  }
+  
   # Calculate Error Rate
   deg_error_rate_data <- deg_variants %>%
     group_by(Sample, Replicate) %>%
@@ -1185,6 +1232,12 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
       Error_Rate = Total_Alt / (Total_Alt + Total_Ref),
       .groups = 'drop'
     )
+  
+  # Check if we have sufficient replicates for statistical test
+  if(nrow(deg_error_rate_data) < 6) {
+    cat(paste0("Insufficient replicates (", nrow(deg_error_rate_data), ") for statistical test in: ", label, ". Skipping.\n"))
+    return(NULL)
+  }
   
   # Stats (T-test)
   stat_test <- deg_error_rate_data %>%
@@ -1242,7 +1295,7 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
     # --- Plot 1: Genes WITH Introns ---
     intron_only_data <- deg_intron_rates %>% filter(Intron_Status == "Genes with Introns")
     
-    if(nrow(intron_only_data) > 0) {
+    if(nrow(intron_only_data) >= 4) {  # Need at least 2 replicates per sample for meaningful plot
       p_intron_only <- ggplot(intron_only_data, aes(x = Sample, y = Error_Rate, fill = Sample)) +
         geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.3) +
         geom_jitter(width = 0.3, height = 0) +
@@ -1260,13 +1313,13 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
       ggsave(filename = file.path(figures_dir, paste0("DEG_With_Intron_Error_", clean_name, ".png")), plot = p_intron_only, width = 4, height = 4)
       ggsave(filename = file.path(figures_dir, paste0("DEG_With_Intron_Error_", clean_name, ".svg")), plot = p_intron_only, width = 4, height = 4)
     } else {
-      cat(paste0("Info: No variant data found for 'Genes with Introns' in subset: ", label, "\n"))
+      cat(paste0("Insufficient data for Genes WITH Introns plot in: ", label, ". Skipping.\n"))
     }
 
     # --- Plot 2: Genes WITHOUT Introns ---
     no_intron_data <- deg_intron_rates %>% filter(Intron_Status == "Genes without Introns")
     
-    if(nrow(no_intron_data) > 0) {
+    if(nrow(no_intron_data) >= 4) {  # Need at least 2 replicates per sample for meaningful plot
       p_no_intron <- ggplot(no_intron_data, aes(x = Sample, y = Error_Rate, fill = Sample)) +
         geom_boxplot(staplewidth = 0.5, outlier.shape = NA, width = 0.3) +
         geom_jitter(width = 0.3, height = 0) +
@@ -1284,11 +1337,11 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
        ggsave(filename = file.path(figures_dir, paste0("DEG_No_Intron_Error_", clean_name, ".png")), plot = p_no_intron, width = 4, height = 4)
        ggsave(filename = file.path(figures_dir, paste0("DEG_No_Intron_Error_", clean_name, ".svg")), plot = p_no_intron, width = 4, height = 4)
     } else {
-       cat(paste0("Info: No variant data found for 'Genes without Introns' in subset: ", label, "\n"))
+       cat(paste0("Insufficient data for Genes WITHOUT Introns plot in: ", label, ". Skipping.\n"))
     }
     
   } else {
-    cat("Insufficient data for Intron analysis on this subset.\n")
+    cat(paste0("No intron variants found for: ", label, ". Skipping intron analysis.\n"))
   }
 }
 
