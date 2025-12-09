@@ -7,8 +7,6 @@
 # 1. LOAD LIBRARIES
 # ------------------------------------------------------------------------------
 if (!require("eulerr", quietly = TRUE)) install.packages("eulerr")
-if (!require("flextable", quietly = TRUE)) install.packages("flextable") 
-if (!require("officer", quietly = TRUE)) install.packages("officer")     
 
 library(tidyverse)
 library(GenomicFeatures)
@@ -17,10 +15,7 @@ library(rtracklayer)
 library(clusterProfiler) 
 library(org.Ce.eg.db)    
 library(DOSE)            
-library(wbData)          
 library(eulerr)
-library(flextable)
-library(officer)
 
 # ==============================================================================
 # 2. CONFIGURATION & SETUP
@@ -45,9 +40,6 @@ MIDDLE_VAF_SNP <- 0.5
 
 # --- C. Target Classes for 22G Analysis ---
 target_classes_22G <- c("CSR Class 22G", "WAGO Class 22G", "unclassifed 22G")
-
-# Load Wormbase Gene IDs
-gids <- wbData::wb_load_gene_ids("WS269")
 
 # ==============================================================================
 # 3. DATA IMPORT & CLEANING
@@ -132,8 +124,6 @@ freq_table_formatted <- freq_table %>%
   ) %>%
   select(Bin, `Sites Counts N2`, `Percentage N2`, `Sites Counts PRDE1`, `Percentage PRDE1`)
 
-ft <- flextable(freq_table_formatted) %>% autofit() %>% theme_vanilla() %>% align(align = "center", part = "all")
-save_as_docx(ft, path = file.path(OUTPUT_DIR, "Frequency_Binned_Allele_Proportions.docx"))
 write_csv(freq_table_formatted, file.path(OUTPUT_DIR, "Frequency_Binned_Allele_Proportions.csv"))
 
 # ==============================================================================
@@ -189,10 +179,6 @@ var_table_formatted <- var_table %>%
   ) %>%
   select(Bin, `Sites Counts N2`, `Percentage N2`, `Sites Counts PRDE1`, `Percentage PRDE1`)
 
-ft_var <- flextable(var_table_formatted) %>% autofit() %>% theme_vanilla() %>% align(align = "center", part = "all") %>% 
-  set_caption("Frequency of Binned Allele Proportions (Variant Sites Only)")
-
-save_as_docx(ft_var, path = file.path(OUTPUT_DIR, "Frequency_Binned_Allele_Proportions_Variant_Only.docx"))
 write_csv(var_table_formatted, file.path(OUTPUT_DIR, "Frequency_Binned_Allele_Proportions_Variant_Only.csv"))
 message("Saved Variant-Only Frequency Table.")
 
@@ -262,8 +248,6 @@ gene_results <- annotated_data %>%
     Rate_PRDE1 = Gene_AltReads_PRDE1 / Gene_TotalReads_PRDE1,
     Log2FC = log2(Rate_PRDE1 / Rate_N2)
   ) %>%
-  mutate(GeneSymbol = wbData::i2s(GeneID, gids)) %>%
-  relocate(GeneSymbol, .after = GeneID) %>% 
   arrange(desc(Log2FC))
 
 write_csv(gene_results, file.path(OUTPUT_DIR, "Gene_Specific_Error_Rates.csv"))
@@ -276,13 +260,6 @@ genes_TE_DOWN <- gene_results %>% filter(Log2FC < 0) %>% pull(GeneID)
 # ==============================================================================
 message("--- Step 6: GO Enrichment ---")
 
-convert_go_ids <- function(ids) {
-  sapply(ids, function(x) {
-    split_ids <- unlist(strsplit(x, "/"))
-    paste(wbData::i2s(split_ids, gids), collapse = "/")
-  })
-}
-
 run_go <- function(gene_list, name, title) {
   if(length(gene_list) < 5) return(NULL)
   go <- enrichGO(gene = gene_list, OrgDb = org.Ce.eg.db, keyType = "WORMBASE", ont = "BP", pvalueCutoff = 0.05)
@@ -290,7 +267,6 @@ run_go <- function(gene_list, name, title) {
     go@result <- mutate(go@result, FoldEnrichment = parse_ratio(GeneRatio)/parse_ratio(BgRatio))
     res_df <- filter(go@result, p.adjust < 0.05)
     if(nrow(res_df) > 0) {
-      res_df$geneSymbol <- convert_go_ids(res_df$geneID)
       write_csv(res_df, file.path(OUTPUT_DIR, paste0("GO_Results_", name, ".csv")))
       p <- dotplot(go, x = "FoldEnrichment", showCategory = 15) + ggtitle(title)
       ggsave(file.path(OUTPUT_DIR, paste0("GO_Enrichment_", name, ".png")), p, width = 8, height = 6)

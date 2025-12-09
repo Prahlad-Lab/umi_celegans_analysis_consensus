@@ -34,8 +34,6 @@ conda create -n $ENV_NAME \
   'r-rstatix' \
   'r-knitr' \
   'r-kableextra' \
-  'r-officer' \
-  'r-flextable' \
   'r-broom' \
   'r-eulerr' \
   'r-patchwork' \
@@ -58,12 +56,6 @@ if [ $? -eq 0 ]; then
   echo ""
   echo "To activate this environment, run:"
   echo "  conda activate $ENV_NAME"
-  echo ""
-  echo "IMPORTANT: One additional package needs to be installed from GitHub:"
-  echo "  - wbData (not available in conda)"
-  echo ""
-  echo "After activating the environment, install it with:"
-  echo "  Rscript -e \"remotes::install_github('AlexWeinreb/wbData')\""
   echo ""
   echo "To deactivate the environment, run:"
   echo "  conda deactivate"
