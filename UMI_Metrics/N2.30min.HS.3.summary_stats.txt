@@ -1,0 +1,6 @@
+--- Metrics Summary for N2.30min.HS.3 ---
+Total Reads Processed: 49929598
+Total UMI Families:    32656634
+Mean Family Size:      1.52893
+Saturation (Unique/Total): 0.654054
+Singleton Families (%): 77.3577

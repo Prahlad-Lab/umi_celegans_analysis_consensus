@@ -1,0 +1,6 @@
+--- Metrics Summary for PRDE1.30min.HS.2 ---
+Total Reads Processed: 62972668
+Total UMI Families:    38739162
+Mean Family Size:      1.62556
+Saturation (Unique/Total): 0.615174
+Singleton Families (%): 74.5928
