@@ -155,11 +155,11 @@ The pipeline creates a base output directory with the following subdirectories. 
 Before running the pipeline, you need to configure the following variables at the top of the `UMI_analysis_pipeline_11.sh` script:
 
 - **`DIR_SEQS`** - Set this to the location where your FASTQ files are stored. 
-  - For sample data: Use `Sample_Fastq/` directory in the repository
+  - For sample data: Use `./Sample_Fastq/` directory in the repository
   - For full ENA data: Use the directory where you downloaded the FASTQ files in Step 3
   
 - **`DIR_REF_INPUT`** - Set this to the location where the input files were unzipped (from Step 4).
-  - Default: `input/` directory in the repository after extracting `inputs.tar.gz`
+  - Default: `./input/` directory in the repository after extracting `inputs.tar.gz`
   
 - **`PYTHON_SCRIPT_PATH`** - Set this to the path of the allele proportion calculation Python script.
   - A copy of this file is available in the `Python_Script/` folder as `calculate_allele_proportions_depth.py`
