@@ -41,6 +41,7 @@ conda create -n $ENV_NAME \
   'r-patchwork' \
   'r-readxl' \
   'r-svglite' \
+  'r-remotes' \
   'bioconductor-rtracklayer' \
   'bioconductor-plyranges' \
   'bioconductor-genomicfeatures' \
@@ -58,12 +59,11 @@ if [ $? -eq 0 ]; then
   echo "To activate this environment, run:"
   echo "  conda activate $ENV_NAME"
   echo ""
-  echo "IMPORTANT: One additional package needs to be installed from Bioconductor:"
+  echo "IMPORTANT: One additional package needs to be installed from GitHub:"
   echo "  - wbData (not available in conda)"
   echo ""
   echo "After activating the environment, install it with:"
-  echo "  Rscript -e \"if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager')\""
-  echo "  Rscript -e \"BiocManager::install('wbData')\""
+  echo "  Rscript -e \"remotes::install_github('AlexWeinreb/wbData')\""
   echo ""
   echo "To deactivate the environment, run:"
   echo "  conda deactivate"

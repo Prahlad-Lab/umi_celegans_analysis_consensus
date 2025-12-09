@@ -340,15 +340,14 @@ This creates a conda environment called `r_variant_analysis` with all necessary 
   - DOSE, clusterProfiler - For functional enrichment analysis
   - org.Ce.eg.db - C. elegans genome annotation database
 
-**Important:** After creating the environment, you need to install one additional package from Bioconductor:
+**Important:** After creating the environment, you need to install one additional package from GitHub:
 
 ```bash
 # Activate the R environment
 conda activate r_variant_analysis
 
 # Install wbData package (WormBase data access)
-
-Rscript -e "install.packages('wbData')"
+Rscript -e "remotes::install_github('AlexWeinreb/wbData')"
 ```
 
 The wbData package provides access to WormBase gene IDs and annotations needed for the transcriptional error analysis.
