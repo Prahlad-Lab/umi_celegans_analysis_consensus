@@ -85,8 +85,6 @@ library(cowplot)
 library(plotly)
 library(knitr)
 library(kableExtra)
-library(officer)
-library(flextable)
 
 
 # --- 2. DATA LOADING: Define File Paths ---
@@ -1003,13 +1001,6 @@ display_and_save_outputs <- function(df, caption, filename_base, dir) {
   
   # Save as CSV
   write_csv(df, file.path(dir, paste0(filename_base, ".csv")))
-  
-  # Save as Word
-  ft <- flextable(df)
-  ft <- autofit(ft)
-  doc <- read_docx()
-  doc <- body_add_flextable(doc, value = ft)
-  print(doc, target = file.path(dir, paste0(filename_base, ".docx")))
 }
 
 # --- Define Output Directories ---
@@ -1054,13 +1045,6 @@ if (!dir.exists(figures_dir)) dir.create(figures_dir, recursive = TRUE)
 # --- Save Summary Table ---
 
 write_csv(summary_table, file.path(tables_dir, "summary_variant_counts_for_analysis.csv"))
-# Save summary table as Word document with landscape orientation
-summary_ft <- flextable(summary_table)
-summary_ft <- autofit(summary_ft)
-# Define landscape page properties
-landscape_prop <- prop_section(page_size = page_size(orient = "landscape"))
-# Save the flextable to a docx file with landscape settings
-save_as_docx(summary_ft, path = file.path(tables_dir, "summary_variant_counts_for_analysis.docx"), pr_section = landscape_prop)
 
 cat("\nSuccessfully saved summary and intermediary tables to:", tables_dir, "\n")
 

@@ -41,8 +41,6 @@ library(broom)
 library(rstatix)
 library(knitr)
 library(kableExtra)
-library(officer)
-library(flextable)
 library(readxl) 
 library(svglite) 
 
@@ -717,12 +715,6 @@ if (!dir.exists(figures_dir)) dir.create(figures_dir, recursive = TRUE)
 # Helper function to save tables
 display_and_save_outputs <- function(df, caption, filename_base, dir) {
   write_csv(df, file.path(dir, paste0(filename_base, ".csv")))
-  # Word doc generation
-  ft <- flextable(df)
-  ft <- autofit(ft)
-  doc <- read_docx()
-  doc <- body_add_flextable(doc, value = ft)
-  print(doc, target = file.path(dir, paste0(filename_base, ".docx")))
 }
 
 # Save Global Tables

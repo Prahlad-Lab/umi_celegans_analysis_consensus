@@ -346,12 +346,7 @@ This creates a conda environment called `r_variant_analysis` with all necessary 
 ```bash
 # Activate the R environment
 conda activate r_variant_analysis
-
-# Install wbData package (WormBase data access)
-Rscript -e "remotes::install_github('AlexWeinreb/wbData')"
 ```
-
-The wbData package provides access to WormBase gene IDs and annotations needed for the transcriptional error analysis.
 
 ### Step 9: Run R Analysis Scripts
 
@@ -457,9 +452,9 @@ source("R_Scripts/transcriptional_error_analysis_4.R")
   - Transcriptional error rate tables (global and gene-level):
     - `Global_Error_Stats.csv` - Per-sample error rates
     - `Gene_Specific_Error_Rates.csv` - Error rates for individual genes
-  - Frequency distribution tables (both Word and CSV formats):
-    - `Frequency_Binned_Allele_Proportions.docx` and `.csv` - All sites with 0.01 bin intervals
-    - `Frequency_Binned_Allele_Proportions_Variant_Only.docx` and `.csv` - Variant sites only with 0.05 bin intervals
+  - Frequency distribution tables (CSV format):
+    - `Frequency_Binned_Allele_Proportions.csv` - All sites with 0.01 bin intervals
+    - `Frequency_Binned_Allele_Proportions_Variant_Only.csv` - Variant sites only with 0.05 bin intervals
   - Statistical test results:
     - `Global_Error_Ttest_Result.csv` - T-test comparing N2 vs PRDE1
     - `Global_Error_KS_Test_Result.csv` - Kolmogorov-Smirnov test results
@@ -468,14 +463,13 @@ source("R_Scripts/transcriptional_error_analysis_4.R")
     - `Global_Error_Rate.png` - Boxplot of error rates by group
 
 **Key features:**
-- Uses WormBase gene IDs (via wbData package) for accurate C. elegans gene annotation
 - Filters data by minimum depth (10 reads) and excludes fixed variants (Proportion = 1.0) and heterozygous positions (Proportion = 0.5)
 - Performs both global and gene-specific transcriptional error analysis
 - Generates two types of frequency distributions:
   - Fine-grained (0.01 bins) for all genomic positions including reference sites (Proportion = 0)
   - Coarser (0.05 bins) focusing only on variant sites (Proportion > 0)
 - Integrates multiple data types (variants, genomic features, optional piRNA targets)
-- Exports results in both Word document and CSV formats for easy analysis and publication
+- Exports results in CSV format for easy analysis and publication
 
 ---
 
