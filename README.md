@@ -434,8 +434,7 @@ consensus_path <- "/path/to/your/pipeline/output/Allele_Proportions"
 # GTF annotation file (should be in your input directory)
 gtf_file <- "Caenorhabditis_elegans.WBcel235.114.gtf"
 
-# 22G piRNA data file (optional - update if you have this data)
-path_22G <- "/path/to/your/22G_deseq_table.csv"
+
 ```
 
 **How to run:**
@@ -467,7 +466,6 @@ source("R_Scripts/transcriptional_error_analysis_4.R")
   - GO enrichment analysis results (`GO_Results_*.csv` and `GO_Enrichment_*.png`)
   - Visualizations:
     - `Global_Error_Rate.png` - Boxplot of error rates by group
-  - Euler diagrams (if 22G piRNA data is provided) showing overlaps between gene sets
 
 **Key features:**
 - Uses WormBase gene IDs (via wbData package) for accurate C. elegans gene annotation
