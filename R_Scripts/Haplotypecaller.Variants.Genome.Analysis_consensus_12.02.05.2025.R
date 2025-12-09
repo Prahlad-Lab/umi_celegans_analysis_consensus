@@ -803,8 +803,8 @@ if(exists("stat_test_intron_wilcox")) {
 # Purpose: Analyze Global and Intron Error Rates specifically for genes identified as 
 # differentially expressed (Up-regulated: padj < 0.05, log2FC > 0) in the DESeq2 analysis.
 
-# HARDCODED PATH for DEG data
-deg_file_path <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Documents/Tables_Final/DESeq mRNA/relevant_deseq_tables/HeatShock_Recovery_vs_Control_DEG.xlsx"
+# Path to HeatShock Recovery vs Control differentially expressed genes data
+deg_file_path <- "input/HeatShock_Recovery_vs_Control_DEG.xlsx"
 
 analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
   
