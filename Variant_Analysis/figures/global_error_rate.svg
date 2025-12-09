@@ -40,13 +40,13 @@
 <line x1='151.58' y1='56.93' x2='151.58' y2='67.87' style='stroke-width: 1.16; stroke: #333333; stroke-linecap: butt;' />
 <polygon points='143.72,42.93 143.72,56.93 159.44,56.93 159.44,42.93 143.72,42.93 ' style='stroke-width: 1.16; stroke: #333333; stroke-linecap: butt; stroke-linejoin: miter; fill: #FF0066;' />
 <line x1='143.72' y1='45.99' x2='159.44' y2='45.99' style='stroke-width: 2.33; stroke: #333333; stroke-linecap: butt; stroke-linejoin: miter;' />
-<circle cx='92.73' cy='162.46' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='114.07' cy='68.05' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='86.03' cy='97.76' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='138.00' cy='39.86' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='152.01' cy='67.87' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='159.37' cy='45.99' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<text x='175.25' y='171.39' text-anchor='end' style='font-size: 12.00px; font-family: "Arial";' textLength='77.75px' lengthAdjust='spacingAndGlyphs'>n = 2045-2054</text>
+<circle cx='106.21' cy='162.46' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='87.05' cy='68.05' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='97.35' cy='97.76' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='157.51' cy='39.86' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='141.33' cy='67.87' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='156.44' cy='45.99' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<text x='175.25' y='171.39' text-anchor='end' style='font-size: 12.00px; font-family: "Arial";' textLength='77.75px' lengthAdjust='spacingAndGlyphs'>n = 1315-1684</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxODkuMDB8MC4wMHwyMTYuMDA=)'>
 <polyline points='67.75,180.85 67.75,21.47 ' style='stroke-width: 1.07; stroke-linecap: square;' />

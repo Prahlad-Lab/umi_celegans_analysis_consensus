@@ -457,8 +457,8 @@ if(file.exists(gtf_path)) {
 # --- 8. VISUALIZATIONS ---
 
 cat("\n--- Generating Plots ---\n")
-n_value_label <- tibble(label = "n = 2045-2054")
-n_value_label_string <- "n = 2045-2054"
+n_value_label <- tibble(label = "n = 1315-1684")
+n_value_label_string <- "n = 1315-1684"
 
 # 7A. Global Allele Proportions Plot
 replicate_proportion_summary <- replicate_proportions %>%

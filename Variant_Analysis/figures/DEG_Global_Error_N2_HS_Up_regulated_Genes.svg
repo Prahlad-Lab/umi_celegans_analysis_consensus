@@ -40,12 +40,12 @@
 <line x1='220.05' y1='156.97' x2='220.05' y2='157.22' style='stroke-width: 1.16; stroke: #333333; stroke-linecap: butt;' />
 <polygon points='204.56,117.25 204.56,156.97 235.54,156.97 235.54,117.25 204.56,117.25 ' style='stroke-width: 1.16; stroke: #333333; stroke-linecap: butt; stroke-linejoin: miter; fill: #FF0066;' />
 <line x1='204.56' y1='156.72' x2='235.54' y2='156.72' style='stroke-width: 2.33; stroke: #333333; stroke-linecap: butt; stroke-linejoin: miter;' />
-<circle cx='141.27' cy='230.01' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='129.71' cy='192.17' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='99.61' cy='160.72' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='196.14' cy='156.72' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='191.11' cy='77.78' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
-<circle cx='203.43' cy='157.22' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='130.82' cy='230.01' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='121.92' cy='192.17' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='94.16' cy='160.72' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='198.80' cy='156.72' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='201.52' cy='77.78' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
+<circle cx='236.98' cy='157.22' r='2.13' style='stroke-width: 0.77; fill: #000000;' />
 </g>
 <g clip-path='url(#cpMC4wMHwyODguMDB8MC4wMHwyODguMDA=)'>
 <polyline points='54.79,252.85 54.79,54.95 ' style='stroke-width: 1.07; stroke-linecap: square;' />
