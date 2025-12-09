@@ -163,13 +163,13 @@ Before running the pipeline, you need to configure the following variables at th
   
 - **`PYTHON_SCRIPT_PATH`** - Set this to the path of the allele proportion calculation Python script.
   - A copy of this file is available in the `Python_Script/` folder as `calculate_allele_proportions_depth.py`
-  - Example: `/path/to/repository/Python_Script/calculate_allele_proportions_depth.py`
+  - Example: `./Python_Script/calculate_allele_proportions_depth.py`
 
 Example configuration:
 ```bash
 DIR_SEQS="/path/to/your/fastq/files"  # or use "./Sample_Fastq" for sample data
 DIR_REF_INPUT="/path/to/your/input"   # or use "./input" if extracted in repository
-PYTHON_SCRIPT_PATH="/path/to/repository/Python_Script/calculate_allele_proportions_depth.py"
+PYTHON_SCRIPT_PATH="./Python_Script/calculate_allele_proportions_depth.py"
 ```
 
 **To run the pipeline:**
