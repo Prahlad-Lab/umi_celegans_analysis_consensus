@@ -86,6 +86,37 @@ This script will download 12 FASTQ files (paired-end reads for 6 samples) from t
 - Sufficient disk space (FASTQ files can be several GB each)
 - Stable internet connection for downloading from EBI FTP server
 
+#### Renaming ENA Files to Descriptive Names
+
+After downloading the ENA files, you can optionally rename them from their accession numbers (ERR15764772, etc.) to more descriptive sample names. The repository includes a script that automatically performs this conversion:
+
+```bash
+# Make the rename script executable
+chmod +x rename_ena_files.sh
+
+# Run the rename script
+./rename_ena_files.sh
+```
+
+This script will rename the downloaded files according to the following mapping:
+
+| ENA Accession | Descriptive Name | Sample Description |
+|---------------|------------------|-------------------|
+| ERR15764772_1.fastq.gz and ERR15764772_2.fastq.gz | N2.30min.HS.1_R1.fastq.gz and N2.30min.HS.1_R2.fastq.gz | N2 strain, 30 min heat shock, replicate 1 |
+| ERR15764773_1.fastq.gz and ERR15764773_2.fastq.gz | N2.30min.HS.2_R1.fastq.gz and N2.30min.HS.2_R2.fastq.gz | N2 strain, 30 min heat shock, replicate 2 |
+| ERR15764774_1.fastq.gz and ERR15764774_2.fastq.gz | N2.30min.HS.3_R1.fastq.gz and N2.30min.HS.3_R2.fastq.gz | N2 strain, 30 min heat shock, replicate 3 |
+| ERR15764775_1.fastq.gz and ERR15764775_2.fastq.gz | PRDE1.30min.HS.1_R1.fastq.gz and PRDE1.30min.HS.1_R2.fastq.gz | PRDE-1 mutant, 30 min heat shock, replicate 1 |
+| ERR15764776_1.fastq.gz and ERR15764776_2.fastq.gz | PRDE1.30min.HS.2_R1.fastq.gz and PRDE1.30min.HS.2_R2.fastq.gz | PRDE-1 mutant, 30 min heat shock, replicate 2 |
+| ERR15764777_1.fastq.gz and ERR15764777_2.fastq.gz | PRDE1.30min.HS.3_R1.fastq.gz and PRDE1.30min.HS.3_R2.fastq.gz | PRDE-1 mutant, 30 min heat shock, replicate 3 |
+
+The script will:
+- Check for the presence of source files before attempting to rename
+- Skip files that have already been renamed (safe to re-run)
+- Provide a summary of renamed, skipped, and missing files
+- Use descriptive R1/R2 notation instead of _1/_2 for clarity
+
+**Note:** This renaming step is optional. The pipeline can work with either the ENA accession names or the descriptive names, but the descriptive names make it easier to identify samples in downstream analysis.
+
 ### Step 4: Extract Input Files
 
 The repository includes compressed input files that need to be extracted before running the analysis:
