@@ -38,7 +38,6 @@ if (!dir.exists(OUTPUT_DIR)) {
 
 consensus_path <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/umi_celegans_consensus/Allele_Proportions"
 gtf_file <- "Caenorhabditis_elegans.WBcel235.114.gtf" 
-path_22G <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Data/output/all_deseq_tables/norRNA_cond1_sx2499_30min_HS_cond2_N2_30min_HS_deseq_table.csv"
 
 # --- B. Filtering Parameters ---
 MIN_DEPTH <- 10         
@@ -303,43 +302,5 @@ run_go <- function(gene_list, name, title) {
 run_go(genes_TE_UP, "UP_Errors", "Higher Errors in PRDE1")
 run_go(genes_TE_DOWN, "DOWN_Errors", "Lower Errors in PRDE1")
 
-# ==============================================================================
-# 7. 22G RNA OVERLAP (FIXED PLOTTING)
-# ==============================================================================
-message("--- Step 7: 22G RNA Overlap Analysis ---")
-
-df_22G <- read_csv(path_22G, show_col_types = FALSE)
-if(!"gene_id" %in% colnames(df_22G) && "baseMean" %in% colnames(df_22G)) {
-  df_22G <- df_22G %>% rename(gene_id = 10) # Keeping your logic for column 10
-}
-
-genes_22G_UP <- df_22G %>% filter(Classifier %in% target_classes_22G, padj < 0.05, log2FoldChange > 0) %>% pull(gene_id)
-genes_22G_DOWN <- df_22G %>% filter(Classifier %in% target_classes_22G, padj < 0.05, log2FoldChange < 0) %>% pull(gene_id)
-
-plot_euler <- function(list_data, filename, plot_title) {
-  fit <- euler(list_data)
-  
-  png(file.path(OUTPUT_DIR, paste0(filename, ".png")), width = 600, height = 600)
-  p <- plot(fit, quantities = TRUE, main = plot_title)
-  print(p) # ESSENTIAL for Euler plots inside functions
-  dev.off()
-  
-  svg(file.path(OUTPUT_DIR, paste0(filename, ".svg")), width = 6, height = 6)
-  p <- plot(fit, quantities = TRUE, main = plot_title)
-  print(p) # ESSENTIAL
-  dev.off()
-}
-
-plot_euler(list("Higher Errors (PRDE1)" = unique(genes_TE_UP), "Higher 22G (PRDE1)" = unique(genes_22G_UP)),
-           "Euler_Overlap_UP_Errors_UP_22G", "Overlap: High Errors vs High 22G")
-
-plot_euler(list("Lower Errors (PRDE1)" = unique(genes_TE_DOWN), "Lower 22G (PRDE1)" = unique(genes_22G_DOWN)),
-           "Euler_Overlap_DOWN_Errors_DOWN_22G", "Overlap: Low Errors vs Low 22G")
-
-plot_euler(list("Higher Errors (PRDE1)" = unique(genes_TE_UP), "Lower 22G (PRDE1)" = unique(genes_22G_DOWN)),
-           "Euler_Overlap_UP_Errors_DOWN_22G", "Overlap: High Errors vs Low 22G")
-
-plot_euler(list("Lower Errors (PRDE1)" = unique(genes_TE_DOWN), "Higher 22G (PRDE1)" = unique(genes_22G_UP)),
-           "Euler_Overlap_DOWN_Errors_UP_22G", "Overlap: Low Errors vs High 22G")
 
 message("--- Analysis Complete! Check Analysis_Results_Combined folder. ---")
