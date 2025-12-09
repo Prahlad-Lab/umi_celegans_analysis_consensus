@@ -543,32 +543,137 @@ For complete setup and usage instructions, see the [Getting Started](#getting-st
 
 ## Pipeline Overview
 
-The pipeline performs the following steps:
+The `UMI_analysis_pipeline_11.sh` performs comprehensive UMI-based variant calling using a consensus read approach. The pipeline workflow consists of the following steps:
 
-1. **FastQC** - Quality control of raw sequencing data
-2. **FastqToUbam** - Convert FastQ files to unmapped BAM format
-3. **ExtractUMIs** - Extract UMI sequences from reads
-4. **STAR Alignment** - Align reads to the reference genome
-5. **UMI Grouping** - Group reads by their UMI sequences
-6. **BAM Filtering** - Filter BAM files by family size (singletons, families)
-7. **GATK BQSR Pipeline** - Base quality score recalibration
-8. **Variant Calling** - Call variants using GATK HaplotypeCaller
-9. **Variant Annotation** - Annotate variants using SnpEff
-10. **Allele Proportion Calculation** - Calculate allele frequencies
+### Pre-processing Steps (1-8):
+1. **FastQC** - Quality control of raw sequencing data (R1 and R2 reads)
+2. **FastqToUbam** - Convert paired-end FastQ files to unmapped BAM format with read group information
+3. **ExtractUMIs** - Extract UMI sequences from reads using fgbio (8bp UMI on R1, 6bp soft-clipped spacer)
+4. **Sort UMI BAM** - Sort extracted BAM files by query name for downstream processing
+5. **STAR Alignment** - Initial alignment of UMI-extracted reads to the reference genome (two-pass mode)
+6. **Sort Aligned BAM** - Sort aligned BAM files by query name
+7. **MergeBamAlignment** - Merge unmapped and aligned BAMs to restore UMI tags and read metadata
+8. **Sort Merged BAM** - Coordinate-sort merged BAMs with index creation
+
+### Consensus Generation (Step 9.5):
+9. **Consensus Analysis** - **Key innovation of this pipeline:**
+   - **Group Reads by UMI** - Group aligned reads into molecular families based on UMI sequences (fgbio GroupReadsByUmi with adjacency strategy)
+   - **Call Consensus Reads** - Generate consensus sequences from each UMI family to reduce sequencing errors (fgbio CallMolecularConsensusReads)
+   - **Re-align Consensus Reads** - Align consensus reads back to the reference genome using STAR
+   - **Merge Consensus BAMs** - Merge unmapped and aligned consensus BAMs to create final consensus BAM files
+   - **Collect Metrics** - Generate alignment summary metrics for consensus reads
+
+### Variant Calling & Analysis (Steps 10-15):
+10. **SplitNCigarReads** - Split reads that span splice junctions for variant calling
+11. **Base Quality Recalibration (BQSR)** - Recalibrate base quality scores using known variants
+12. **HaplotypeCaller** - Call variants from consensus BAM files using GATK HaplotypeCaller
+13. **Variant Annotation** - Annotate variants with functional effects using SnpEff (impact predictions, gene annotations)
+14. **Bcftools Mpileup** - Generate pileup data for allele proportion analysis
+15. **Allele Proportion Calculation** - Calculate allele frequencies and depth statistics using Python script
+16. **MultiQC** - Aggregate quality control metrics and generate comprehensive HTML report
+
+### Key Features:
+- **Consensus-based approach**: Uses molecular consensus sequences from UMI families to minimize sequencing errors and improve variant calling accuracy
+- **Parallel processing**: Leverages GNU parallel for efficient multi-sample processing
+- **Smart checkpointing**: Automatically skips completed steps for efficient pipeline resumption
+- **Comprehensive QC**: Includes FastQC reports, alignment metrics, and MultiQC aggregation
 
 ## Directory Structure
 
+### Repository Structure:
 ```
 .
-├── Complete_Analysis/           # Complete pipeline scripts
-├── Separate_Scripts/            # Individual task scripts
-├── R_Scripts/                   # R analysis scripts
-├── input_broad/                 # Reference files
-├── Family_size1_allele_proportions_depth10/  # Output data
-├── Family_size1_annotation/     # Variant annotations
-├── environment.yml              # Conda environment specification
-├── setup_conda_environments.sh  # Setup script
-└── README.md                    # This file
+├── UMI_analysis_pipeline_11.sh         # Main consensus-based UMI analysis pipeline
+├── run_umi_metrics.sh                  # UMI family size metrics calculation script
+├── setup_conda_environments.sh         # Main bioinformatics tools environment setup
+├── setup_conda_r_variant_analysis.sh   # R environment setup for downstream analysis
+├── environment.yml                     # Conda environment specification
+├── README.md                           # This documentation file
+├── QUICKSTART.md                       # Quick start guide
+│
+├── input/                              # Reference genome files and annotations
+│   ├── Caenorhabditis_elegans.WBcel235.dna.toplevel.fa      # Reference genome
+│   ├── Caenorhabditis_elegans.WBcel235.dna.toplevel.dict    # Sequence dictionary
+│   ├── Caenorhabditis_elegans.WBcel235.114.gtf              # Gene annotations
+│   └── random_subset.vcf.gz                                 # Known variants for BQSR
+│
+├── Sample_Fastq/                       # Pre-subsampled FASTQ files for testing (100K reads)
+│   ├── N2.30min.HS.1_R1.subset.fastq.gz
+│   ├── N2.30min.HS.1_R2.subset.fastq.gz
+│   └── ... (additional sample pairs)
+│
+├── Python_Script/                      # Python utilities
+│   └── calculate_allele_proportions_depth.py  # Allele proportion calculator
+│
+├── R_Scripts/                          # R analysis scripts for downstream variant analysis
+│   ├── Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+│   └── transcriptional_error_analysis_4.R
+│
+├── Analysis_Results_Combined/          # Example R analysis outputs
+├── Variant_Analysis/                   # Example variant analysis results
+├── MultiQC/                           # Example MultiQC reports
+└── UMI_Metrics/                       # Example UMI family metrics
+```
+
+### Pipeline Output Structure:
+The `UMI_analysis_pipeline_11.sh` creates the following output directories (default location: `/vscratch/grp-vprahlad/umi_celegans_consensus` or configured via `BASE_OUTPUT_DIR`):
+
+```
+BASE_OUTPUT_DIR/
+├── fastqc/                            # FastQC quality control reports
+│   ├── {sample}_R1_fastqc.html
+│   └── {sample}_R2_fastqc.html
+│
+├── FastqToUbam/                       # Unmapped BAM files with metadata
+│   └── {sample}.unmapped.bam
+│
+├── ExtractUmisFromBam/                # UMI-extracted BAM files
+│   ├── {sample}.extractUMIs.out.bam
+│   └── {sample}.querysort.extractUMIs.out.bam
+│
+├── STARNoClip/                        # Initial STAR alignment outputs
+│   ├── {sample}.Aligned.out.bam
+│   └── {sample}.querysort.Aligned.out.bam
+│
+├── UMIAwareDuplicateMarkingGenomeNoClip/  # Merged and sorted BAMs with UMI tags
+│   ├── {sample}.MergeBamAlignment.bam
+│   └── {sample}.MergeBamAlignment.coordinate_sorted.bam
+│
+├── Consensus_Analysis/                # ⭐ Consensus read generation outputs
+│   ├── {sample}.fgbio_grouped.bam               # UMI-grouped reads
+│   ├── {sample}.consensus.unmapped.bam          # Consensus unmapped reads
+│   ├── {sample}.consensus.unmapped.querysort.bam
+│   ├── {sample}.consensus.Aligned.out.bam       # Consensus aligned reads
+│   ├── {sample}.consensus.querysort.Aligned.out.bam
+│   ├── {sample}.consensus.merged.bam            # Final consensus BAM
+│   └── {sample}.CONSENSUS_alignment_metrics.txt # Consensus QC metrics
+│
+├── FilterBambyFamilySizeGenome/       # Family size statistics (reference only)
+│
+├── HaplotypeCaller/                   # Variant calling from consensus BAMs
+│   ├── {sample}.consensus.split.bam
+│   ├── {sample}.consensus.recal.table
+│   ├── {sample}.consensus.bqsr.bam             # Recalibrated consensus BAM
+│   └── {sample}.consensus.vcf.gz               # Called variants
+│
+├── Annotation/                        # SnpEff variant annotations
+│   ├── {sample}.consensus.ann.vcf              # Annotated VCF
+│   ├── {sample}.consensus.ann.bed              # BED format annotations
+│   └── {sample}.consensus_summary.html/csv     # Annotation statistics
+│
+├── Bcftools_Mpileup/                  # Pileup data for allele proportions
+│   └── {sample}.consensus.pileup
+│
+├── Allele_Proportions/                # Allele frequency calculations
+│   ├── {sample}.consensus.per_position_results.tsv  # Position-level data
+│   └── {sample}.consensus.summary_totals.txt        # Summary statistics
+│
+├── UMI_Metrics/                       # UMI family size distributions (optional)
+│   ├── {sample}.family_size_histogram.txt
+│   └── {sample}.summary_stats.txt
+│
+└── MultiQC/                           # Aggregated QC reports
+    └── multiqc_report.html
 ```
 
 ## Support
