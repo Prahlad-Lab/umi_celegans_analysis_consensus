@@ -1127,7 +1127,7 @@ cat("Successfully saved all statistical summaries to:", stat_test_dir, "\n")
 library(readxl) # Ensure readxl is loaded
 library(svglite) # Required for saving as SVG
 
-# Define file path for DEG data
+# Path to HeatShock Recovery vs Control differentially expressed genes data
 deg_file_path <- "input/HeatShock_Recovery_vs_Control_DEG.xlsx"
 
 # Ensure figures directory exists (using the variable defined in your Section 10)
