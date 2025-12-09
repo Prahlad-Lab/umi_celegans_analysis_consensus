@@ -24,7 +24,7 @@ These folders are provided as references to help you understand the expected out
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/Prahlad-Lab/umi_celegans_analysis.git
+git clone https://github.com/Prahlad-Lab/umi_celegans_analysis_consensus.git
 ```
 
 ### Step 2: Navigate to the Repository Directory
@@ -32,7 +32,7 @@ git clone https://github.com/Prahlad-Lab/umi_celegans_analysis.git
 Change directory to the cloned repository:
 
 ```bash
-cd umi_celegans_analysis
+cd umi_celegans_analysis_consensus
 ```
 
 ### Step 3: Download FASTQ Files
