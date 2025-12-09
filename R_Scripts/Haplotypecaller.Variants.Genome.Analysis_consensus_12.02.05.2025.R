@@ -280,7 +280,7 @@ mismatch_error_data <- variants_filtered %>%
   mutate(Mismatch_Error_Rate = Total_Alt_Mismatch / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(mismatch_error_data) >= 6) {  # At least 3 replicates per sample (2 samples x 3 replicates = 6)
+if(nrow(mismatch_error_data) >= 6) {  # Minimum threshold of 6 data points (e.g., 2 samples x 3 replicates)
   stat_test_mismatch_error_rate <- mismatch_error_data %>%
     group_by(Mismatch_Type) %>%
     filter(sum(Mismatch_Error_Rate[Sample == "N2"]) > 0 & sum(Mismatch_Error_Rate[Sample == "PRDE1"]) > 0) %>%
@@ -306,7 +306,7 @@ functional_class_rate_data <- variants_filtered %>%
   mutate(Class_Rate = Total_Alt_Class / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(functional_class_rate_data) >= 6) {  # At least 3 replicates per sample
+if(nrow(functional_class_rate_data) >= 6) {  # Minimum threshold of 6 data points
   stat_test_functional_class_rate <- functional_class_rate_data %>%
     group_by(Functional_Class) %>%
     filter(sum(Class_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Class_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%
@@ -332,7 +332,7 @@ effect_type_rate_data <- variants_filtered %>%
   mutate(Effect_Rate = Total_Alt_Effect / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(effect_type_rate_data) >= 6) {  # At least 3 replicates per sample
+if(nrow(effect_type_rate_data) >= 6) {  # Minimum threshold of 6 data points
   stat_test_effect_type_rate <- effect_type_rate_data %>%
     group_by(Effect_Type) %>%
     filter(sum(Effect_Rate[Sample == "N2"], na.rm = TRUE) > 0 & sum(Effect_Rate[Sample == "PRDE1"], na.rm = TRUE) > 0) %>%

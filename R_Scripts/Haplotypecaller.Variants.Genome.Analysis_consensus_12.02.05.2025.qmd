@@ -310,7 +310,7 @@ mismatch_error_data <- variants_filtered %>%
   mutate(Mismatch_Error_Rate = Total_Alt_Mismatch / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(mismatch_error_data) >= 6) {  # At least 3 replicates per sample (2 samples x 3 replicates = 6)
+if(nrow(mismatch_error_data) >= 6) {  # Minimum threshold of 6 data points (e.g., 2 samples x 3 replicates)
   # Perform Wilcoxon test only on mismatch types with enough data
   stat_test_mismatch_error_rate <- mismatch_error_data %>%
     group_by(Mismatch_Type) %>%
@@ -341,7 +341,7 @@ functional_class_rate_data <- variants_filtered %>%
   mutate(Class_Rate = Total_Alt_Class / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(functional_class_rate_data) >= 6) {  # At least 3 replicates per sample
+if(nrow(functional_class_rate_data) >= 6) {  # Minimum threshold of 6 data points
   # Perform Wilcoxon test only on classes with enough data
   stat_test_functional_class_rate <- functional_class_rate_data %>%
     group_by(Functional_Class) %>%
@@ -371,7 +371,7 @@ effect_type_rate_data <- variants_filtered %>%
   mutate(Effect_Rate = Total_Alt_Effect / Total_Replicate_Depth)
 
 # Check if there are sufficient data points for statistical analysis
-if(nrow(effect_type_rate_data) >= 6) {  # At least 3 replicates per sample
+if(nrow(effect_type_rate_data) >= 6) {  # Minimum threshold of 6 data points
   # Perform Wilcoxon test only on effect types with enough data
   stat_test_effect_type_rate <- effect_type_rate_data %>%
     group_by(Effect_Type) %>%
@@ -710,12 +710,13 @@ if(nrow(effect_type_rate_data) >= 6) {
     geom_text(data = n_value_label, aes(x = Inf, y = -Inf, label = label), hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +
     scale_y_continuous(labels = scales::scientific, expand = expansion(mult = c(0, 0.15))) +
     scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
-  labs(
-    x = "SnpEff Effect Type",
-    y = "Mean Error Rate \nper Total Reads"
-  ) +
-  theme_cowplot(font_size = 12, font_family = "Arial") +
-  theme(axis.text.x = element_text(angle = 90,hjust = 1, vjust = 1))
+    labs(
+      x = "SnpEff Effect Type",
+      y = "Mean Error Rate \nper Total Reads"
+    ) +
+    theme_cowplot(font_size = 12, font_family = "Arial") +
+    theme(axis.text.x = element_text(angle = 90,hjust = 1, vjust = 1))
+}
 
 
 # 7H. SnpEff NMD Rate Plot
