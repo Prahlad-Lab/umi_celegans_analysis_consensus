@@ -204,7 +204,7 @@ list.variants.Filtered = variants_filtered |> as.data.frame() |>  group_by(Sampl
 if (!dir.exists("Variant_Analysis")) dir.create("Variant_Analysis")
 
 final.list.varians.filtered = list("N2" = list.variants.Filtered[[1]], "PRDE1" = list.variants.Filtered[[2]])
-writexl::write_xlsx(final.list.varians.filtered, path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
+#writexl::write_xlsx(final.list.varians.filtered, path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
 
 
 # --- 6. STATISTICAL ANALYSES ---
