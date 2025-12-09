@@ -1,2 +1,0 @@
-estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
--0.004216833457514696,LoF_Rate,N2,PRDE1,3,3,3,0.7,-0.008754896658837552,0.006856878796788007,Wilcoxon,two.sided

@@ -1,4 +1,0 @@
-Variant_Type,estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
-Deletion,0.003189836474391864,Proportion,N2,PRDE1,3,3,8,0.2,-5.4714848716604786e-5,0.01508575594746272,Wilcoxon,two.sided
-Insertion,0.03009372282689371,Proportion,N2,PRDE1,3,3,8,0.2,-0.003639493992953491,0.06518365595128106,Wilcoxon,two.sided
-SNP,-0.033382189113552396,Proportion,N2,PRDE1,3,3,1,0.2,-0.08017078208647699,0.003694208841669988,Wilcoxon,two.sided

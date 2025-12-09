@@ -1,3 +1,0 @@
-Intron_Status,estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
-Genes with Introns,-0.0045029281276569855,Error_Rate,N2,PRDE1,3,3,2,0.4,-0.014690785413682794,0.00720032860984976,Wilcoxon,two.sided
-Genes without Introns,-0.3491868607351556,Error_Rate,N2,PRDE1,3,3,0,0.1,-0.49165944354643487,-0.29293103985541125,Wilcoxon,two.sided

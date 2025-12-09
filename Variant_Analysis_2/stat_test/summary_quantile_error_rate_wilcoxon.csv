@@ -1,0 +1,5 @@
+Quantile,estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
+Gene Length Q1: 30-1214bp,-0.059301263267279525,Error_Rate,N2,PRDE1,3,3,0,0.1,-0.0932842336592411,-0.032029950426680664,Wilcoxon,two.sided
+Gene Length Q2: 1215-2026bp,3.454617824553974e-4,Error_Rate,N2,PRDE1,3,3,5,1,-0.05047546608973877,0.012480517949456316,Wilcoxon,two.sided
+Gene Length Q3: 2027-3633bp,-0.004996833436072712,Error_Rate,N2,PRDE1,3,3,3,0.7,-0.02313652668046917,0.027033718941226803,Wilcoxon,two.sided
+Gene Length Q4: 3634-102756bp,-0.008888568484630321,Error_Rate,N2,PRDE1,3,3,0,0.1,-0.016996355372657507,-0.001285896761890143,Wilcoxon,two.sided

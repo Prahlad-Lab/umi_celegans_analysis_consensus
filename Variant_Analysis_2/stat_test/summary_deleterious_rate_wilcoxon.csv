@@ -1,0 +1,2 @@
+estimate,.y.,group1,group2,n1,n2,statistic,p,conf.low,conf.high,method,alternative
+-0.008474012462878322,Deleterious_Rate,N2,PRDE1,3,3,3,0.7,-0.018462406303877438,0.014222553424131201,Wilcoxon,two.sided

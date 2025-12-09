@@ -1,0 +1,15 @@
+Analysis,Sample,Replicate_1,Replicate_2,Replicate_3
+Gene Length Q1: 30-1214bp,N2,112,141,131
+Gene Length Q1: 30-1214bp,PRDE1,143,127,130
+Gene Length Q2: 1215-2026bp,N2,147,230,191
+Gene Length Q2: 1215-2026bp,PRDE1,208,212,193
+Gene Length Q3: 2027-3633bp,N2,275,356,332
+Gene Length Q3: 2027-3633bp,PRDE1,347,323,323
+Gene Length Q4: 3634-102756bp,N2,716,872,763
+Gene Length Q4: 3634-102756bp,PRDE1,799,806,815
+Genes with Introns,N2,1239,1580,1400
+Genes with Introns,PRDE1,1480,1451,1447
+Genes without Introns,N2,11,19,17
+Genes without Introns,PRDE1,17,17,14
+Total Filtered Variants,N2,1315,1684,1481
+Total Filtered Variants,PRDE1,1569,1542,1535

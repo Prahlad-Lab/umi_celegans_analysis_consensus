@@ -1,0 +1,7 @@
+Intron_Status,Sample,Replicate,Total_Alt,Total_Ref,Error_Rate
+Genes with Introns,N2,1,330,1473,0.18302828618968386
+Genes with Introns,N2,2,595,2559,0.18864933417882054
+Genes with Introns,N2,3,454,1699,0.21086855550394798
+Genes with Introns,PRDE1,1,437,2074,0.17403424930306652
+Genes with Introns,PRDE1,2,431,1816,0.19181130396083668
+Genes with Introns,PRDE1,3,577,2819,0.16990577149587752

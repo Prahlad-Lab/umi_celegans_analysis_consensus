@@ -1,2 +1,0 @@
-estimate,estimate1,estimate2,.y.,group1,group2,n1,n2,statistic,p,df,conf.low,conf.high,method,alternative
--1.231570889308007e-4,4.292515202843918e-4,5.524086092151925e-4,NMD_Rate,N2,PRDE1,3,3,-0.8095522613841097,0.476,3.0662089974250297,-6.014415008001212e-4,3.551273229385199e-4,T-test,two.sided

@@ -1,2 +1,0 @@
-estimate,estimate1,estimate2,.y.,group1,group2,n1,n2,statistic,p,df,conf.low,conf.high,method,alternative
--0.004009307306064996,0.15519823806042235,0.15920754536648735,Deleterious_Rate,N2,PRDE1,3,3,-0.5000275634210868,0.661,2.295750791116487,-0.034580911697563464,0.02656229708543347,T-test,two.sided

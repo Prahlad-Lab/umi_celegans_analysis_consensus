@@ -200,7 +200,7 @@ DESIRED_IMPACTS <- c("HIGH", "MODERATE", "LOW")
 variants_filtered <- all_variants_raw %>% 
   filter(Read_Depth >= MIN_READ_DEPTH) %>%
   filter(IMPACT %in% DESIRED_IMPACTS)  |> 
-  filter(Variant_ratio < 1.0) 
+  filter(Variant_ratio < 1.0) |>  filter(Variant_ratio != 0.5) 
 #   3791  3792  4894  4895  9893 14491 14492 15072 17461 19531 23452 23453 25569 25570 26567 26632 26633 28690 28691
 # [20] 32289 35025 36099 36100 37167 37168 39450 46855 46856 52121 57626 57627 60928
 
@@ -1193,9 +1193,9 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
       .groups = 'drop'
     )
   
-  # Stats (Wilcoxon)
+  # Stats (T-test)
   stat_test <- deg_error_rate_data %>%
-    rstatix::wilcox_test(Error_Rate ~ Sample, detailed = TRUE)
+    rstatix::t_test(Error_Rate ~ Sample, detailed = TRUE)
   print(stat_test)
   
   # Plot
@@ -1206,7 +1206,7 @@ analyze_deg_subset <- function(sheet_name, label, variants_df, intron_df) {
     scale_fill_manual(values = c("N2" = "#A0A0A4", "PRDE1" = "#FF0066")) +
     labs(
       title = paste0("Global Error Rate\n(", label, ")"),
-      subtitle = paste("Wilcoxon p-value:", format.pval(stat_test$p, digits = 3)),
+      subtitle = paste("T-test p-value:", format.pval(stat_test$p, digits = 3)),
       x = "Sample",
       y = "Error Rate (Non-Ref/Total)"
     ) +
