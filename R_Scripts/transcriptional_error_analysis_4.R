@@ -14,7 +14,6 @@ library(rtracklayer)
 library(clusterProfiler) 
 library(org.Ce.eg.db)    
 library(DOSE)            
-library(eulerr)
 
 # ==============================================================================
 # 2. CONFIGURATION & SETUP
