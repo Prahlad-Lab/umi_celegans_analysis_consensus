@@ -334,6 +334,7 @@ This creates a conda environment called `r_variant_analysis` with all necessary 
 - **Statistical analysis**: rstatix, broom
 - **Document generation**: knitr, kableExtra, officer, flextable, readxl
 - **Euler diagrams**: eulerr
+- **Package installation tools**: remotes - For installing packages from GitHub
 - **Bioconductor genomics packages**: 
   - rtracklayer, plyranges - For working with genomic ranges and tracks
   - GenomicFeatures, GenomicRanges - For genomic feature manipulation
