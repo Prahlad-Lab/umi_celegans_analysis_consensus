@@ -504,8 +504,8 @@ variants_by_quantile <- bind_rows(
 cat("\n--- Generating Plots ---\n")
 
 # Define the hardcoded n-value label
-n_value_label <- tibble(label = "n = 2045-2054")
-n_value_label_string <- "n = 2045-2054"
+n_value_label <- tibble(label = "n = 1315-1684")
+n_value_label_string <- "n = 1315-1684"
 
 
 # 7A. Global Allele Proportions
