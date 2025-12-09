@@ -540,14 +540,6 @@ For detailed instructions on downloading the FASTQ files, see [Step 3: Download 
 
 For complete setup and usage instructions, see the [Getting Started](#getting-started) section above.
 
-### Running Individual Pipeline Steps
-
-Individual pipeline steps are available in the `Separate_Scripts/` directory if you need to run specific parts of the analysis:
-- `task.FastqToUbam.sh` - Convert FastQ to unmapped BAM
-- `task.ExtractUMIs.sh` - Extract UMIs from BAM files
-- `task.STARNoClip.sh` - STAR alignment
-- `task.GroupByUMIsGenomeneClip.sh` - Group reads by UMI
-- And more...
 
 ## Pipeline Overview
 
