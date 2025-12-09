@@ -217,7 +217,7 @@ list.variants.Filtered = variants_filtered |> as.data.frame() |>  group_by(Sampl
 list.variants.Filtered.names = variants_filtered |> group_by(Sample) |>  group_keys()
 final.list.varians.filtered = list("N2" = list.variants.Filtered[[1]],"PRDE1"=list.variants.Filtered[[2]])
 
-writexl::write_xlsx(final.list.varians.filtered,path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
+#writexl::write_xlsx(final.list.varians.filtered,path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
 
 # --- 6A. STATISTICAL ANALYSIS: Global Allele Proportions per Replicate ---
 cat("\n--- Running Global Allele Proportion Analysis per Replicate ---\n")
