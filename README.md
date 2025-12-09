@@ -402,8 +402,10 @@ conda activate r_variant_analysis
 # Run the R script
 Rscript R_Scripts/transcriptional_error_analysis_4.R
 
-# Or run interactively in R/RStudio
+# Or run interactively in R
+# First start R:
 R
+# Then inside R, run:
 source("R_Scripts/transcriptional_error_analysis_4.R")
 ```
 
