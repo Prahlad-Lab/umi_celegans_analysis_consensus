@@ -415,16 +415,16 @@ source("R_Scripts/transcriptional_error_analysis_4.R")
   - Transcriptional error rate tables (global and gene-level):
     - `Global_Error_Stats.csv` - Per-sample error rates
     - `Gene_Specific_Error_Rates.csv` - Error rates for individual genes
-  - Frequency distribution tables:
-    - `Frequency_Binned_Allele_Proportions.docx/csv` - All sites with 0.01 bin intervals
-    - `Frequency_Binned_Allele_Proportions_Variant_Only.docx/csv` - Variant sites only with 0.05 bin intervals
+  - Frequency distribution tables (both Word and CSV formats):
+    - `Frequency_Binned_Allele_Proportions.docx` and `.csv` - All sites with 0.01 bin intervals
+    - `Frequency_Binned_Allele_Proportions_Variant_Only.docx` and `.csv` - Variant sites only with 0.05 bin intervals
   - Statistical test results:
     - `Global_Error_Ttest_Result.csv` - T-test comparing N2 vs PRDE1
     - `Global_Error_KS_Test_Result.csv` - Kolmogorov-Smirnov test results
   - GO enrichment analysis results (`GO_Results_*.csv` and `GO_Enrichment_*.png`)
   - Visualizations:
     - `Global_Error_Rate.png` - Boxplot of error rates by group
-  - Euler diagrams showing overlaps between gene sets (if 22G data provided)
+  - Euler diagrams (if 22G piRNA data is provided) showing overlaps between gene sets
 
 **Key features:**
 - Uses WormBase gene IDs (via wbData package) for accurate C. elegans gene annotation
