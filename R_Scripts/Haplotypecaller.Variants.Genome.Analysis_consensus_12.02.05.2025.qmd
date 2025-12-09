@@ -1128,7 +1128,7 @@ library(readxl) # Ensure readxl is loaded
 library(svglite) # Required for saving as SVG
 
 # Define file path for DEG data
-deg_file_path <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Documents/Tables_Final/DESeq mRNA/relevant_deseq_tables/HeatShock_Recovery_vs_Control_DEG.xlsx"
+deg_file_path <- "input/HeatShock_Recovery_vs_Control_DEG.xlsx"
 
 # Ensure figures directory exists (using the variable defined in your Section 10)
 # If running this chunk independently, ensure 'figures_dir' is defined:
