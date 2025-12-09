@@ -310,8 +310,8 @@ This creates a conda environment called `r_variant_analysis` with all necessary 
 conda activate r_variant_analysis
 
 # Install wbData package (WormBase data access)
-Rscript -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager')"
-Rscript -e "BiocManager::install('wbData')"
+
+Rscript -e "install.packages('wbData')"
 ```
 
 The wbData package provides access to WormBase gene IDs and annotations needed for the transcriptional error analysis.
