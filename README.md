@@ -362,9 +362,13 @@ The `R_Scripts/` directory contains scripts for downstream analysis of consensus
 - The `r_variant_analysis` conda environment must be activated
 - You may need to update file paths in the R scripts to match your output directory structure
 
-**1. Variant Genome Analysis** (`R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd`)
+**1. Variant Genome Analysis** (`R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd` or `.R`)
 
-This Quarto/R Markdown notebook performs comprehensive analysis of variants from consensus reads called by GATK HaplotypeCaller. It compares variant profiles between N2 (wild-type) and PRDE1 (mutant) samples to assess transcriptional error rates.
+This analysis is available in two formats:
+- **Quarto/R Markdown notebook** (`.qmd`): For interactive analysis with rendered HTML output
+- **Plain R script** (`.R`): For command-line execution without Quarto dependency
+
+Both versions perform comprehensive analysis of variants from consensus reads called by GATK HaplotypeCaller. They compare variant profiles between N2 (wild-type) and PRDE1 (mutant) samples to assess transcriptional error rates.
 
 **What it does:**
 - Reads and processes annotated VCF files from both sample groups (N2 and PRDE1)
@@ -384,12 +388,15 @@ This Quarto/R Markdown notebook performs comprehensive analysis of variants from
 # Activate the R environment
 conda activate r_variant_analysis
 
-# Option 1: Open in RStudio and run interactively
+# Option 1: Open in RStudio and run interactively (Quarto version)
 # Open RStudio and then open the file:
 # File -> Open File -> R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
 
-# Option 2: Render to HTML using Quarto (if installed)
+# Option 2: Render to HTML using Quarto (requires Quarto installation)
 quarto render R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+
+# Option 3: Run the plain R script using Rscript (no Quarto required)
+Rscript R_Scripts/Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.R
 ```
 
 **Output:** 
@@ -606,7 +613,8 @@ The `UMI_analysis_pipeline_11.sh` performs comprehensive UMI-based variant calli
 │   └── calculate_allele_proportions_depth.py  # Allele proportion calculator
 │
 ├── R_Scripts/                          # R analysis scripts for downstream variant analysis
-│   ├── Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd
+│   ├── Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.qmd  # Quarto version
+│   ├── Haplotypecaller.Variants.Genome.Analysis_consensus_12.02.05.2025.R    # Plain R script version
 │   └── transcriptional_error_analysis_4.R
 │
 ├── Analysis_Results_Combined/          # Example R analysis outputs
