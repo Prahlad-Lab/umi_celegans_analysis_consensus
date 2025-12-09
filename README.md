@@ -50,12 +50,12 @@ For quick testing and validation of the pipeline, the repository includes pre-su
 - ✅ Ideal for testing, validation, and familiarization with the pipeline
 
 **Files included in Sample_Fastq/:**
-- N2.30min.HS.1_R1.subset.fastq.gz and N2.30min.HS.1_R2.subset.fastq.gz
-- N2.30min.HS.2_R1.subset.fastq.gz and N2.30min.HS.2_R2.subset.fastq.gz
-- N2.30min.HS.3_R1.subset.fastq.gz and N2.30min.HS.3_R2.subset.fastq.gz
-- PRDE1.30min.HS.1_R1.subset.fastq.gz and PRDE1.30min.HS.1_R2.subset.fastq.gz
-- PRDE1.30min.HS.2_R1.subset.fastq.gz and PRDE1.30min.HS.2_R2.subset.fastq.gz
-- PRDE1.30min.HS.3_R1.subset.fastq.gz and PRDE1.30min.HS.3_R2.subset.fastq.gz
+- N2.30min.HS.1_R1.fastq.gz and N2.30min.HS.1_R2.fastq.gz
+- N2.30min.HS.2_R1.fastq.gz and N2.30min.HS.2_R2.fastq.gz
+- N2.30min.HS.3_R1.fastq.gz and N2.30min.HS.3_R2.fastq.gz
+- PRDE1.30min.HS.1_R1.fastq.gz and PRDE1.30min.HS.1_R2.fastq.gz
+- PRDE1.30min.HS.2_R1.fastq.gz and PRDE1.30min.HS.2_R2.fastq.gz
+- PRDE1.30min.HS.3_R1.fastq.gz and PRDE1.30min.HS.3_R2.fastq.gz
 
 
 
@@ -635,8 +635,8 @@ The `UMI_analysis_pipeline_11.sh` performs comprehensive UMI-based variant calli
 │   └── random_subset.vcf.gz                                 # Known variants for BQSR
 │
 ├── Sample_Fastq/                       # Pre-subsampled FASTQ files for testing (100K reads)
-│   ├── N2.30min.HS.1_R1.subset.fastq.gz
-│   ├── N2.30min.HS.1_R2.subset.fastq.gz
+│   ├── N2.30min.HS.1_R1.fastq.gz
+│   ├── N2.30min.HS.1_R2.fastq.gz
 │   └── ... (additional sample pairs)
 │
 ├── Python_Script/                      # Python utilities
