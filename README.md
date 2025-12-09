@@ -555,7 +555,7 @@ The `UMI_analysis_pipeline_11.sh` performs comprehensive UMI-based variant calli
 7. **MergeBamAlignment** - Merge unmapped and aligned BAMs to restore UMI tags and read metadata
 8. **Sort Merged BAM** - Coordinate-sort merged BAMs with index creation
 
-### Consensus Generation (Step 9.5):
+### Consensus Generation (Step 9):
 9. **Consensus Analysis** - **Key innovation of this pipeline:**
    - **Group Reads by UMI** - Group aligned reads into molecular families based on UMI sequences (fgbio GroupReadsByUmi with adjacency strategy)
    - **Call Consensus Reads** - Generate consensus sequences from each UMI family to reduce sequencing errors (fgbio CallMolecularConsensusReads)
@@ -563,7 +563,7 @@ The `UMI_analysis_pipeline_11.sh` performs comprehensive UMI-based variant calli
    - **Merge Consensus BAMs** - Merge unmapped and aligned consensus BAMs to create final consensus BAM files
    - **Collect Metrics** - Generate alignment summary metrics for consensus reads
 
-### Variant Calling & Analysis (Steps 10-15):
+### Variant Calling & Analysis (Steps 10-16):
 10. **SplitNCigarReads** - Split reads that span splice junctions for variant calling
 11. **Base Quality Recalibration (BQSR)** - Recalibrate base quality scores using known variants
 12. **HaplotypeCaller** - Call variants from consensus BAM files using GATK HaplotypeCaller
@@ -659,7 +659,8 @@ BASE_OUTPUT_DIR/
 ├── Annotation/                        # SnpEff variant annotations
 │   ├── {sample}.consensus.ann.vcf              # Annotated VCF
 │   ├── {sample}.consensus.ann.bed              # BED format annotations
-│   └── {sample}.consensus_summary.html/csv     # Annotation statistics
+│   ├── {sample}.consensus_summary.html         # Annotation statistics (HTML)
+│   └── {sample}.consensus_summary.csv          # Annotation statistics (CSV)
 │
 ├── Bcftools_Mpileup/                  # Pileup data for allele proportions
 │   └── {sample}.consensus.pileup
