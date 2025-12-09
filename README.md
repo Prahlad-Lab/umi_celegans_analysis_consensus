@@ -377,6 +377,14 @@ Both versions perform comprehensive analysis of variants from consensus reads ca
   - `N2.30min.HS.1.consensus.ann.vcf`, `N2.30min.HS.2.consensus.ann.vcf`, `N2.30min.HS.3.consensus.ann.vcf`
   - `PRDE1.30min.HS.1.consensus.ann.vcf`, `PRDE1.30min.HS.2.consensus.ann.vcf`, `PRDE1.30min.HS.3.consensus.ann.vcf`
 - **Note:** These files are automatically created by the variant annotation step of the main pipeline
+- GTF annotation file (optional for gene quantile and intron/exon analysis): `Caenorhabditis_elegans.WBcel235.114.gtf` (from input files)
+
+**Configuration:** Before running, you may want to update the GTF file path in the script. Open the script file (`.R` or `.qmd`) and modify the `gtf_path` variable in the "DATA LOADING: Define File Paths" section:
+```r
+# GTF File Path Configuration
+# Set the path to your GTF annotation file
+gtf_path <- "input/Caenorhabditis_elegans.WBcel235.114.gtf"
+```
 
 **How to run:**
 ```bash
