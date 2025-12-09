@@ -6,7 +6,6 @@
 
 # 1. LOAD LIBRARIES
 # ------------------------------------------------------------------------------
-if (!require("eulerr", quietly = TRUE)) install.packages("eulerr")
 
 library(tidyverse)
 library(GenomicFeatures)
