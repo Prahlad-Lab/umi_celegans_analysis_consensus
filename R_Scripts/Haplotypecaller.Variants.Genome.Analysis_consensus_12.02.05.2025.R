@@ -195,10 +195,10 @@ cat("Filtered down to", nrow(variants_filtered), "total variant records matching
 # Export filtered lists
 list.variants.Filtered = variants_filtered |> as.data.frame() |>  group_by(Sample) |>  group_split()
 # Note: Ensuring output directory exists before writing
-if (!dir.exists("Variant_Analysis_3")) dir.create("Variant_Analysis_3")
+if (!dir.exists("Variant_Analysis")) dir.create("Variant_Analysis")
 
 final.list.varians.filtered = list("N2" = list.variants.Filtered[[1]], "PRDE1" = list.variants.Filtered[[2]])
-writexl::write_xlsx(final.list.varians.filtered, path = "Variant_Analysis_3/Tables.Variants.Sites.Per.Samples.xlsx")
+writexl::write_xlsx(final.list.varians.filtered, path = "Variant_Analysis/Tables.Variants.Sites.Per.Samples.xlsx")
 
 
 # --- 6. STATISTICAL ANALYSES ---
@@ -704,7 +704,7 @@ if(exists("gtf")) {
 cat("\n--- Saving Results ---\n")
 
 # Define Output Directories
-output_dir <- "Variant_Analysis_3/"
+output_dir <- "Variant_Analysis/"
 tables_dir <- file.path(output_dir, "tables")
 stat_test_dir <- file.path(output_dir, "stat_test")
 figures_dir <- file.path(output_dir, "figures")
