@@ -73,6 +73,14 @@ if (!all(file.exists(all_files))) {
   warning("One or more VCF files were not found. Please check your file paths.")
 }
 
+# GTF File Path Configuration
+# IMPORTANT: Set the path to your GTF annotation file.
+# This file is used for gene quantile analysis and intron/exon classification.
+# The GTF file should be compatible with your reference genome (e.g., WBcel235).
+# Default assumes the GTF file is in the input directory after extraction.
+# Example: "input/Caenorhabditis_elegans.WBcel235.114.gtf"
+gtf_path <- "input/Caenorhabditis_elegans.WBcel235.114.gtf"
+
 
 # --- 3. PROCESSING FUNCTION: Extract Data from a VCF File ---
 
@@ -369,8 +377,7 @@ stat_t_test_deleterious_rate <- deleterious_rate_data %>% rstatix::t_test(Delete
 
 cat("\n--- Setting up Analysis by Gene Length Quantile ---\n")
 # 8A. Load GTF and Define Gene Quantiles
-# Note: HARDCODED PATH. Update for your system.
-gtf_path <- "Y:/Johnny/Roswell_Projects/Sehee_mRNA_piRNA/Github.Sehee.paper/Data/input/Caenorhabditis_elegans.WBcel235.111.gtf.gz"
+# Note: GTF path is configured at the top of the script in the "DATA LOADING" section.
 
 if(file.exists(gtf_path)) {
   gtf <- rtracklayer::import(con = gtf_path)
