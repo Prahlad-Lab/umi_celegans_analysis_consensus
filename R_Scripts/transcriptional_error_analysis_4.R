@@ -2,7 +2,6 @@
 # COMBINED ANALYSIS SCRIPT
 # - Transcriptional Errors (Global & Gene-level)
 # - Frequency Tables (All Sites [0.01 bins] & Variant Only [0.05 bins])
-# - 22G Overlap (Fixed Euler Plots)
 # ==============================================================================
 
 # 1. LOAD LIBRARIES
