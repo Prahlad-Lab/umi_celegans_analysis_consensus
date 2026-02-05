@@ -17,6 +17,11 @@ This repository includes example results from running the full pipeline on compl
 
 These folders are provided as references to help you understand the expected output structure and content when you run the pipeline on your own data.
 
+## System Requirements & Performance
+
+- **Estimated Install Time:** ~20 minutes (depending on internet connection)
+- **Expected Run Time for Demo:** ~15-20 minutes on a "normal" desktop computer (e.g., 4 cores, 16GB RAM)
+
 ## Getting Started
 
 ### Step 1: Clone the Repository
